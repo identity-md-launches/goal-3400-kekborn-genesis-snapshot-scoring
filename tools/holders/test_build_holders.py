@@ -9,7 +9,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from build_holders import main
+from build_holders import COLUMNS, ROOT, main, verify_scan
 
 
 FIRST = "0x" + "a" * 40
@@ -20,7 +20,9 @@ ZERO = "0x" + "d" * 40
 
 class HolderFixtureTest(unittest.TestCase):
     def setUp(self):
-        directory = tempfile.TemporaryDirectory()
+        scratch = ROOT / "test/scratch/holder-fixtures"
+        scratch.mkdir(parents=True, exist_ok=True)
+        directory = tempfile.TemporaryDirectory(dir=scratch)
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name)
         self.output = self.root / "holders.csv"
@@ -45,18 +47,20 @@ class HolderFixtureTest(unittest.TestCase):
     def run_builder(self, arguments, status, message):
         log = io.StringIO()
         with redirect_stdout(log), redirect_stderr(log):
-            self.assertEqual(main(self.root, arguments), status)
+            self.assertEqual(main(self.root, arguments, verify_evidence=False), status)
         self.assertIn(message, log.getvalue())
 
     def test_merge_and_check(self):
         self.run_builder([], 0, "Both chains: 1; CSV data rows: 3")
         with self.output.open(newline="", encoding="ascii") as stream:
             header, *rows = csv.reader(stream)
-        self.assertEqual(header, [
-            "wallet", "eth_balance_raw", "rh_balance_raw", "total_balance_raw",
-            "eth_balance", "rh_balance", "total_balance", "on_ethereum", "on_robinhood",
-            "is_contract_eth", "is_contract_rh",
+        self.assertEqual(header, list(COLUMNS))
+        self.assertEqual([row[11:] for row in rows], [
+            ['', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', ''],
+            ['', '', '', '', 'none', '', ''],
         ])
+        rows = [row[:11] for row in rows]
         self.assertEqual(rows, [
             [FIRST, "1000000000000000001", "2", "1000000000000000003",
              "1.000000000000000001", "0.000000000000000002", "1.000000000000000003",
@@ -83,6 +87,15 @@ class HolderFixtureTest(unittest.TestCase):
                 self.write_chain("ethereum", rows, **overrides)
                 self.run_builder([], 1, message)
                 self.assertFalse(self.output.exists())
+
+    def test_scan_requires_complete_nonoverlapping_coverage(self):
+        scan = {'firstBlock': 5, 'totalLogs': 3, 'rows': [[5, 7, 2], [8, 9, 1]]}
+        verify_scan(scan, 9)
+        with self.assertRaisesRegex(ValueError, 'snapshot'):
+            verify_scan(scan, 10)
+        scan['rows'][1][0] = 7
+        with self.assertRaisesRegex(ValueError, 'noncontiguous'):
+            verify_scan(scan, 9)
 
     def test_missing_source(self):
         (self.root / "sources/chain-robinhood/scan.json").unlink()

@@ -3,6 +3,7 @@
 from contextlib import redirect_stdout, redirect_stderr
 import csv
 import io
+from hashlib import sha256
 import json
 from pathlib import Path
 import tempfile
@@ -55,7 +56,7 @@ class Fixture(unittest.TestCase):
 
     def order(self, ident, job=None, **overrides):
         row = {'orderId': ident, 'wallet': A, 'createdAt': BEFORE,
-               'resultKind': 'job', 'resultJobId': job}
+               'resultKind': 'job', 'resultJobId': job, 'paymentStatus': 'confirmed'}
         row.update(overrides)
         self.orders.append(row)
         return row
@@ -68,7 +69,7 @@ class Fixture(unittest.TestCase):
         self.source('sources/api-catalog/goals.json', self.goals)
         self.source('sources/api-catalog/workflows.json', self.workflows)
         self.source('sources/api-catalog/oracle-requests.json', self.requests)
-        return {r['job_id']: r for r in b.build(self.root)}
+        return {r['job_id']: r for r in b.build(self.root, verify_shards=False)}
 
     def test_strict_cutoff_and_order_precedence(self):
         self.job('early-order-late-job', createdAt=AFTER)
@@ -81,23 +82,25 @@ class Fixture(unittest.TestCase):
         self.job('unknown-order-time')
         self.order('o3', 'unknown-order-time', createdAt=None)
         self.job('offset-time', createdAt='2026-11-25T12:59:59.999+02:00')
+        self.order('o4', 'offset-time', createdAt='2026-11-25T12:59:59.999+02:00')
         rows = self.run_build()
         self.assertTrue(rows['early-order-late-job']['counts'])
         self.assertEqual(rows['late-order-early-job']['eligible'], 'false')
-        self.assertEqual(rows['at-cutoff']['eligible'], 'false')
-        self.assertEqual(rows['after-cutoff']['eligible'], 'false')
+        self.assertEqual(rows['at-cutoff']['eligible'], 'unknown')
+        self.assertEqual(rows['after-cutoff']['eligible'], 'unknown')
         self.assertEqual(rows['unknown-job-time']['eligible'], 'unknown')
         self.assertEqual(rows['unknown-order-time']['eligible'], 'unknown')
         self.assertEqual(rows['offset-time']['eligible'], 'true')
 
-    def test_payer_precedence_and_lowercase(self):
+    def test_payer_disagreement_does_not_attribute(self):
         self.job('paid', paidBy=A.upper().replace('0X', '0x'))
         self.order('o1', 'paid', wallet=B)
         self.job('order-linked', paidBy=None)
         self.order('o2', 'order-linked', wallet=B)
         rows = self.run_build()
-        self.assertEqual(rows['paid']['wallet'], A)
-        self.assertEqual(rows['paid']['link_evidence'], 'paidBy')
+        self.assertIsNone(rows['paid']['wallet'])
+        self.assertEqual(rows['paid']['unlinked_reason'], 'conflicting_payers')
+        self.assertFalse(rows['paid']['counts'])
         self.assertIn('payer_conflict', rows['paid']['data_gaps'])
         self.assertEqual(rows['order-linked']['wallet'], B)
         self.assertEqual(rows['order-linked']['link_evidence'], 'order:o2')
@@ -112,9 +115,9 @@ class Fixture(unittest.TestCase):
         self.goals = [{'jobId': 'parent', 'children': [['x', 'oracle.request', 'panel', 'opened']]}]
         rows = self.run_build()
         self.assertEqual(rows['panel']['link_evidence'], 'order:o1')
-        self.assertEqual(rows['panel']['counted_under'], 'panel')
+        self.assertEqual(rows['panel']['counted_under'], 'parent')
         self.assertEqual(rows['panel']['scope']['chain'], 4663)
-        self.assertTrue(rows['panel']['counts'])
+        self.assertFalse(rows['panel']['counts'])
         self.assertIsNone(rows['unlinked-panel']['wallet'])
         self.assertEqual(rows['unlinked-panel']['unlinked_reason'], 'oracle_no_matching_order')
 
@@ -129,8 +132,9 @@ class Fixture(unittest.TestCase):
         self.job('contracts', template='impl_tests')
         self.job('frontend', template='skill:build-website')
         self.job('continuation', parentJobId='contracts', template='impl_tests')
+        self.order('goal-order', 'goal')
         self.order('continue-order', 'continuation', continues='contracts')
-        self.goals = [{'jobId': 'goal', 'children': [['child', 'workflow.open', 'contracts', 'opened']]}]
+        self.goals = [{'jobId': 'goal', 'children': [['child', 'workflow.open', 'contracts', 'opened'], ['continuation', 'job.continue', 'continuation', 'opened']]}]
         self.workflows = [{'id': 'w', 'contractsJobId': 'contracts', 'frontendJobId': 'frontend'}]
         rows = self.run_build()
         self.assertEqual(rows['frontend']['counted_under'], 'goal')
@@ -141,13 +145,28 @@ class Fixture(unittest.TestCase):
         self.assertEqual(rows['continuation']['counted_under'], 'continuation')
         self.assertTrue(rows['goal']['is_goal'])
 
-    def test_workflow_does_not_invent_payer(self):
+    def test_paid_late_continuation_stays_distinct_and_unscored(self):
+        self.job('goal', template='goal')
+        self.job('late-continuation')
+        self.order('goal-order', 'goal')
+        self.order('late-order', 'late-continuation', action='job.continue', createdAt=AFTER)
+        self.goals = [{'jobId': 'goal', 'children': [{'jobId': 'late-continuation'}]}]
+        rows = self.run_build()
+        self.assertTrue(rows['goal']['counts'])
+        self.assertNotIn('children', rows['goal']['scope'])
+        late = rows['late-continuation']
+        self.assertEqual(late['counted_under'], 'late-continuation')
+        self.assertEqual(late['eligible'], 'false')
+        self.assertFalse(late['counts'])
+
+    def test_workflow_order_links_explicit_contract_stage(self):
         self.job('first', paidBy=None)
         self.job('second', paidBy=None)
         self.workflows = [{'id': 'w', 'contractsJobId': 'first', 'frontendJobId': 'second'}]
         self.order('o1', resultKind='workflow', resultId='w')
         rows = self.run_build()
-        self.assertIsNone(rows['first']['wallet'])
+        self.assertEqual(rows['first']['wallet'], A)
+        self.assertTrue(rows['first']['counts'])
         self.assertIsNone(rows['second']['wallet'])
         self.assertEqual(rows['second']['counted_under'], 'first')
 
@@ -189,7 +208,7 @@ class Fixture(unittest.TestCase):
         self.assertIsNone(row['order_id'])
         self.assertEqual(row['eligible'], 'unknown')
         self.assertFalse(row['counts'])
-        self.assertEqual(row['unlinked_reason'], 'ambiguous_orders')
+        self.assertEqual(row['unlinked_reason'], 'conflicting_payers')
 
     def test_invalid_address_does_not_link(self):
         self.job('bad-address', paidBy='not-an-address')
@@ -197,11 +216,98 @@ class Fixture(unittest.TestCase):
         self.assertIsNone(row['wallet'])
         self.assertIn('paidBy', row['data_gaps'])
 
-    def test_conflicting_orders_fail(self):
+    def test_conflicting_order_results_stay_visible_and_unscored(self):
         self.order('o1', 'job')
         self.order('o1', 'other')
-        with self.assertRaisesRegex(ValueError, 'Conflicting observations'):
-            self.run_build()
+        rows = self.run_build()
+        for row in rows.values():
+            self.assertEqual(row['wallet'], A)
+            self.assertFalse(row['counts'])
+            self.assertIn('result_targets', row['data_gaps']['order_conflicts']['o1'])
+
+    def raw_order_source(self, name, payload, **fields):
+        raw = json.dumps(payload)
+        self.source(f'sources/e04-orders/{name}.json', [{
+            'wallet': A, 'httpStatus': 200, 'bodyText': raw,
+            'bodySha256': sha256(raw.encode()).hexdigest(), **fields}])
+
+    def test_order_admission_upper_bound_and_late_admission(self):
+        for ident in ('early', 'equal', 'late', 'bad-time'):
+            self.job(ident)
+        entries = []
+        for ident, at in [('early', BEFORE), ('equal', b.CUTOFF), ('late', AFTER), ('bad-time', BEFORE)]:
+            order = {'id': ident, 'status': 'paid'}
+            if ident == 'bad-time':
+                order['createdAt'] = 'unreadable'
+            entries.append({'kind': 'request', 'payer': A, 'state': 'completed', 'order': order,
+                            'admission': {'createdAt': at, 'result': {'jobId': ident}}})
+        self.raw_order_source('intake', {'entries': entries}, transactionHash='shared-payment')
+        rows = self.run_build()
+        self.assertTrue(rows['early']['counts'])
+        self.assertIsNone(rows['early']['order_created_at'])
+        self.assertEqual(rows['early']['order_created_upper_bound'], BEFORE)
+        for ident in ('equal', 'late', 'bad-time'):
+            self.assertEqual(rows[ident]['eligible'], 'unknown')
+            self.assertFalse(rows[ident]['counts'])
+
+    def test_failed_payment_and_unconfirmed_payment(self):
+        self.job('failed')
+        self.order('of', 'failed', paymentStatus='failed')
+        self.job('unconfirmed')
+        self.order('ou', 'unconfirmed', paymentStatus=None)
+        rows = self.run_build()
+        self.assertEqual(rows['failed']['eligible'], 'false')
+        self.assertEqual(rows['unconfirmed']['eligible'], 'unknown')
+        self.assertFalse(any(row['counts'] for row in rows.values()))
+
+    def test_oracle_group_shared_payment_duplicate_panel_and_attestation(self):
+        self.job('panel-a', paidBy=None, oracleRequestId='a')
+        self.job('panel-a-copy', paidBy=None, oracleRequestId='a', nodes=20)
+        self.job('panel-b', paidBy=None, oracleRequestId='b')
+        self.requests = [{'id': 'a', 'jobId': 'panel-a', 'status': 'attested'},
+                         {'id': 'b', 'jobId': 'panel-b', 'status': 'disagreed'}]
+        self.order('shared', resultKind='oracle-group', resultJobId=['panel-a', 'panel-b'],
+                   resultId=['a', 'b'], paymentTx='shared-tx',
+                   result={'kind': 'oracle-group', 'jobId': 'group-container', 'requests': [
+                       {'requestId': 'a', 'jobId': 'panel-a'},
+                       {'requestId': 'a', 'jobId': 'panel-a-copy'},
+                       {'requestId': 'b', 'jobId': 'panel-b'}]})
+        rows = self.run_build()
+        self.assertEqual({key for key, row in rows.items() if row['counts']}, {'panel-a', 'panel-b'})
+        self.assertEqual(rows['panel-a-copy']['counted_under'], 'panel-a')
+        self.assertIsNone(rows['panel-b']['deliverable_ok'])
+        self.assertTrue(rows['panel-a']['deliverable_ok'])
+        self.assertEqual(rows['panel-a']['complexity'], 4)
+        self.assertEqual({rows[key]['payment_tx'] for key in ('panel-a', 'panel-b')}, {'shared-tx'})
+
+    def test_nested_children_aggregate_once_without_url_success(self):
+        self.job('outer', template='goal', resultComplete=None, siteUrl='https://example.invalid')
+        self.job('inner', template='goal', resultComplete=None, resultFiles=1)
+        self.job('start', nodesAccepted=1, resultComplete=None, deliveryCommit='abc')
+        self.job('finish', resultComplete=True)
+        self.order('outer-order', 'outer')
+        self.goals = [{'jobId': 'outer', 'children': [{'jobId': 'inner'}]},
+                      {'jobId': 'inner', 'children': [{'jobId': 'start'}, {'jobId': 'finish'}]}]
+        self.workflows = [{'id': 'w', 'contractsJobId': 'start', 'frontendJobId': 'finish'}]
+        rows = self.run_build()
+        self.assertEqual({key for key, row in rows.items() if row['counts']}, {'outer'})
+        self.assertEqual({v['job_id'] for v in rows['outer']['scope']['children']}, {'inner', 'start', 'finish'})
+        self.assertEqual(rows['outer']['quality']['accepted_share'], 0.875)
+        self.assertEqual(rows['outer']['complexity'], 16)
+        self.assertIsNone(rows['start']['deliverable_ok'])
+        self.assertTrue(rows['outer']['deliverable_ok'])
+
+    def test_raw_detail_payer_conflict_keeps_both_observations(self):
+        self.job('conflicted')
+        self.order('o', 'conflicted')
+        raw = json.dumps({'id': 'conflicted', 'paidBy': B})
+        self.source('sources/e04-jobs-01/records.json', [{
+            'jobId': 'conflicted', 'detailHttpStatus': 200, 'detailBodyText': raw,
+            'detailSha256': sha256(raw.encode()).hexdigest()}])
+        row = self.run_build()['conflicted']
+        self.assertEqual(row['unlinked_reason'], 'conflicting_payers')
+        self.assertEqual(row['data_gaps']['source_disagreement.paidBy'][0]['observed'], B)
+        self.assertFalse(row['counts'])
 
     def test_group_cycle_fails(self):
         self.job('a')
@@ -233,15 +339,15 @@ class Fixture(unittest.TestCase):
         self.run_build()
         stdout, stderr = io.StringIO(), io.StringIO()
         with redirect_stdout(stdout), redirect_stderr(stderr):
-            self.assertEqual(b.main(['--root', str(self.root)]), 0)
-            self.assertEqual(b.main(['--root', str(self.root), '--check']), 0)
+            self.assertEqual(b.main(['--root', str(self.root)], verify_shards=False), 0)
+            self.assertEqual(b.main(['--root', str(self.root), '--check'], verify_shards=False), 0)
             output = self.root / 'jobs.csv'
             output.write_bytes(output.read_bytes() + b'\n')
             changed = output.read_bytes()
-            self.assertEqual(b.main(['--root', str(self.root), '--check']), 1)
+            self.assertEqual(b.main(['--root', str(self.root), '--check'], verify_shards=False), 1)
             self.assertEqual(output.read_bytes(), changed)
             (self.root / 'sources/api-wallets-05/late-jobs.json').unlink()
-            self.assertEqual(b.main(['--root', str(self.root)]), 2)
+            self.assertEqual(b.main(['--root', str(self.root)], verify_shards=False), 2)
             self.assertEqual(output.read_bytes(), changed)
         self.assertIn('PASS: jobs.csv matches', stdout.getvalue())
         self.assertIn('FAIL: jobs.csv differs', stderr.getvalue())
@@ -259,9 +365,10 @@ class Fixture(unittest.TestCase):
         data['rows'] = [['extra', 'cell']]
         path.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError, 'width differs'):
-            b.build(self.root)
+            b.build(self.root, verify_shards=False)
 
     def test_csv_json_round_trip_and_determinism(self):
+        self.order('o', 'quoted')
         self.job('quoted', resultFileNames=['comma,quote"', 'new\nline'])
         rows = self.run_build()
         first = b.encode(list(rows.values()))
@@ -304,7 +411,7 @@ class Rules(unittest.TestCase):
             category, reason = b.classify_category({'template': template}, False)
             self.assertEqual(category, 'website/product')
             self.assertIn('product content', reason)
-        self.assertEqual(b.classify_category({'template': 'shape:dag', 'objective': 'write a contract'}, False)[0], 'other')
+        self.assertEqual(b.classify_category({'template': 'shape:dag', 'objective': 'write a contract'}, False)[0], 'unknown')
         self.assertEqual(b.classify_category({'template': 'shape:chain', 'launchKind': 'evm_project'}, False)[0], 'code/contracts')
         self.assertEqual(b.classify_category({'template': 'shape:dag', 'siteUrl': 'https://example.invalid'}, False)[0], 'website/product')
 

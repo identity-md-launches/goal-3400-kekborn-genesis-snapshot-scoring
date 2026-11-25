@@ -14,12 +14,16 @@ from pathlib import Path
 import re
 import sys
 
+from shard_validation import unique, validate_shards
+from order_evidence import aggregate_orders, body, payment_facts, references, result_references
+
 ROOT = Path(__file__).resolve().parents[2]
 CUTOFF = '2026-11-25T11:00:00Z'
 FIELDS = '''job_id created_at template state wallet link_evidence unlinked_reason
 is_holder order_id order_created_at eligible counted_under counts status category
 scope complexity deliverables deliverable_ok quality is_goal category_reason
-status_reason eligibility_reason grouping_reason data_gaps sources'''.split()
+status_reason eligibility_reason grouping_reason data_gaps sources
+oracle_request_id payment_tx order_created_upper_bound'''.split()
 TEMPLATE_CATEGORIES = {
     'goal': 'multi-agent goal', 'skill:goal-orchestrator': 'multi-agent goal',
     'research': 'research', 'skill:research-report': 'research',
@@ -65,7 +69,7 @@ def timestamp(value):
     try:
         dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
         return dt.astimezone(timezone.utc) if dt.tzinfo is not None else None
-    except ValueError:
+    except (ValueError, OverflowError):
         return None
 
 
@@ -123,6 +127,8 @@ def reduce_detail(detail, result):
         ('launchChainId', 'launch', 'chainId'), ('launchId', 'launch', 'id'),
         ('siteUrl', 'site', 'url')):
         out[target] = obj(d.get(parent)).get(key)
+        if out[target] is None and parent == 'launch':
+            out[target] = obj(r.get(parent)).get(key)
     versions = obj(d.get('project')).get('versions')
     out['projectVersions'] = [obj(v).get('jobId') for v in versions] if isinstance(versions, list) else None
     delivery = {**obj(r.get('delivery')), **{k: v for k, v in obj(d.get('delivery')).items() if v is not None}}
@@ -183,17 +189,20 @@ def classify_category(job, is_goal):
         return 'code/contracts', 'launchKind=' + job['launchKind']
     if job.get('siteUrl'):
         return 'website/product', 'explicit siteUrl on otherwise generic template'
-    return 'other', 'no specific mapped template, recognized launch kind, or site; generic execution shapes do not establish subject matter'
+    return 'unknown', 'no mapped template, recognized launch kind, or explicit site evidence'
 
 
 def required_paths():
     return (['snapshot.json', 'holders.csv'] +
-            [f'sources/api-jobs-{i:02d}/jobs.json' for i in range(8)] +
-            [f'sources/api-wallets-{i:02d}/{name}.json' for i in range(6) for name in ('orders', 'late-jobs')] +
+            [f'sources/api-jobs-{i:02d}/{name}.json' for i in range(8) for name in ('index', 'jobs')] +
+            [f'sources/api-jobs-04/{name}.json' for name in ('details', 'results')] +
+            [f'sources/api-wallets-{i:02d}/{name}.json' for i in range(6) for name in ('wallets', 'orders', 'late-jobs')] +
+            [f'sources/e04-jobs-{i:02d}/{name}.json' for i in range(2) for name in ('index', 'records')] +
+            [f'sources/e04-orders/{name}.json' for name in ('paid-by', 'intake')] +
             [f'sources/api-catalog/{name}.json' for name in ('job-index', 'goals', 'workflows', 'oracle-requests')])
 
 
-def build(root):
+def build(root, *, verify_shards=True):
     missing = [p for p in required_paths() if not (root / p).is_file()]
     if missing:
         raise ValueError('Missing required inputs (no output written): ' + ', '.join(missing))
@@ -210,6 +219,8 @@ def build(root):
     docs, tables = {}, {}
     for p in required_paths()[2:]:
         docs[p], tables[p] = read_source(root / p)
+    if verify_shards:
+        validate_shards(root, docs, tables, holders, timestamp(CUTOFF), timestamp)
     catalog = lambda name: tables[f'sources/api-catalog/{name}.json']
     jobs, provenance, gaps = {}, defaultdict(set), defaultdict(dict)
 
@@ -218,9 +229,16 @@ def build(root):
             raise ValueError(f'{source}: missing job ID')
         current = jobs.setdefault(ident, {'id': ident})
         for key, val in row.items():
-            if val is not None and (overwrite or current.get(key) is None):
-                if key in current and current[key] is not None and current[key] != val:
-                    gaps[ident]['source_disagreement.' + key] = 'different observed values; detail preferred over index; first detail preferred over late detail'
+            old = current.get(key)
+            if key == 'nodeRoles':
+                val, old = roles(val), roles(old)
+            if key == 'paidBy' and val:
+                val, old = address(val) or val, address(old) or old
+            if old is not None and val is not None and old != val:
+                conflict = gaps[ident].setdefault('source_disagreement.' + key, [])
+                conflict.append({'previous': old, 'observed': val, 'source': source,
+                                 'selected': 'observed' if overwrite else 'previous'})
+            if val is not None and (overwrite or old is None):
                 current[key] = val
         provenance[ident].add(source)
 
@@ -237,7 +255,7 @@ def build(root):
                                     'state': row.get('jobState')}, p, overwrite=False)
     detailed = set()
     for p in sorted(tables):
-        if '/api-jobs-' in p:
+        if '/api-jobs-' in p and p.endswith('/jobs.json'):
             for row in tables[p]:
                 ident = row['id']
                 if ident not in jobs:
@@ -254,134 +272,323 @@ def build(root):
             merge(ident, reduce_detail(row['detail'], row.get('result', row.get('resultOrError'))), p, overwrite=False)
             detailed.add(ident)
 
-    goals = {r['jobId']: r for r in catalog('goals')}
-    workflows = {r['id']: r for r in catalog('workflows')}
-    requests = {r['id']: r for r in catalog('oracle-requests')}
-    request_jobs = defaultdict(set)
-    job_requests = defaultdict(list)
-    for request in requests.values():
+    def merge_raw(ident, detail, result, detail_path, result_path):
+        jobs.setdefault(ident, {'id': ident})
+        if detail is not None:
+            if detail.get('id') != ident:
+                raise ValueError(f'{detail_path}: mismatched detail ID for {ident}')
+            merge(ident, reduce_detail(detail, None), detail_path, overwrite=False)
+            detailed.add(ident)
+        if result is not None:
+            if result.get('jobId') != ident:
+                raise ValueError(f'{result_path}: mismatched result ID for {ident}')
+            row = reduce_detail({}, result)
+            row['state'] = result.get('state')
+            merge(ident, row, result_path, overwrite=False)
+
+    detail_path, result_path = ('sources/api-jobs-04/details.json', 'sources/api-jobs-04/results.json')
+    raw_details = {r['id']: r for r in tables[detail_path]}
+    for r in tables[result_path]:
+        ident = r['id']
+        merge_raw(ident, body(raw_details[ident], 'httpStatus', 'payload'),
+                  body(r, 'httpStatus', 'payload'), detail_path, result_path)
+        for kind, path, observation in (('detail', detail_path, raw_details[ident]),
+                                         ('result', result_path, r)):
+            provenance[ident].add(path)
+            if observation.get('error'):
+                gaps[ident]['raw_' + kind] = observation['error']
+    for i in range(2):
+        path = f'sources/e04-jobs-{i:02d}/records.json'
+        for r in tables[path]:
+            ident = r['jobId']
+            if i == 0:
+                detail = body(r, 'detailHttpStatus', 'detail')
+                result = body(r, 'resultHttpStatus', 'result')
+            else:
+                detail = body(r, 'detailHttpStatus', 'detailBodyText', 'detailSha256')
+                result = body(r, 'resultHttpStatus', 'resultBodyText', 'resultSha256')
+            merge_raw(ident, detail, result, path, path)
+            provenance[ident].add(path)
+            for kind in ('detail', 'result'):
+                if r.get(kind + 'Error'):
+                    gaps[ident]['e04_' + kind] = r[kind + 'Error']
+
+    def keyed_catalog(name, key):
+        rows = catalog(name)
+        unique(rows, key, f'sources/api-catalog/{name}.json')
+        return {row[key]: row for row in rows}
+
+    goals = keyed_catalog('goals', 'jobId')
+    workflows = keyed_catalog('workflows', 'id')
+    requests = keyed_catalog('oracle-requests', 'id')
+    request_jobs, job_questions = defaultdict(set), defaultdict(set)
+    catalog_primary = {}
+    oracle_source = 'sources/api-catalog/oracle-requests.json'
+
+    def question_job(question, ident):
+        request_jobs[question].add(ident)
+        job_questions[ident].add(question)
+
+    for question, request in requests.items():
         if request.get('jobId'):
-            request_jobs[request['id']].add(request['jobId'])
-            job_requests[request['jobId']].append(request)
+            ident = request['jobId']
+            catalog_primary[question] = ident
+            question_job(question, ident)
+            provenance[ident].add(oracle_source)
     for ident, job in jobs.items():
         if job.get('oracleRequestId'):
-            request_jobs[job['oracleRequestId']].add(ident)
-    oracle_jobs = {r['jobId'] for r in requests.values() if r.get('jobId')}
-    oracle_jobs.update(j for j, r in jobs.items() if r.get('template') == 'skill:oracle-assess')
-    # Explicit membership edges only: parentJobId is deliberately never consulted.
+            question_job(job['oracleRequestId'], ident)
+
     parents = defaultdict(set)
+    graph_sources = defaultdict(set)
+
+    def edge(child, parent, source):
+        if child and parent:
+            parents[child].add(parent)
+            graph_sources[child].add(source)
+
     for workflow in workflows.values():
-        first, second = workflow.get('contractsJobId'), workflow.get('frontendJobId')
-        if first and second and first != second:
-            parents[second].add(first)
+        edge(workflow.get('frontendJobId'), workflow.get('contractsJobId'),
+             'sources/api-catalog/workflows.json')
     for goal in goals.values():
         for child in goal.get('children') or []:
             child_id = child[2] if isinstance(child, list) and len(child) >= 3 else obj(child).get('jobId')
-            if child_id and child_id != goal['jobId']:
-                parents[child_id].add(goal['jobId'])
-    # Goal membership is stronger than a workflow's internal edge; resolve both
-    # paths and require agreement, rather than choosing an arbitrary parent.
-    def root_of(ident, trail=()):
-        if ident in trail:
-            raise ValueError('Cycle in goal/workflow membership: ' + ' -> '.join(trail + (ident,)))
-        if ident in oracle_jobs or not parents[ident]:
-            return ident
-        roots = {root_of(p, trail + (ident,)) for p in parents[ident]}
-        if len(roots) != 1:
-            raise ValueError(f'Conflicting goal/workflow roots for {ident}: {sorted(roots)}')
-        return roots.pop()
+            edge(child_id, goal['jobId'], 'sources/api-catalog/goals.json')
 
-    orders = {}
-    for p in sorted(tables):
-        if not p.endswith('/orders.json'):
-            continue
-        for row in tables[p]:
-            ident = row.get('orderId')
-            if not ident:
-                raise ValueError(f'{p}: missing orderId')
-            previous = orders.setdefault(ident, {})
-            for key, val in row.items():
-                if val is not None:
-                    if previous.get(key) is not None and previous[key] != val:
-                        raise ValueError(f'Conflicting observations of order {ident} field {key}')
-                    previous[key] = val
-            previous.setdefault('_sources', set()).add(p)
+    orders = aggregate_orders(tables)
+    order_primary = defaultdict(set)
     linked_orders = defaultdict(set)
+    continuations = defaultdict(set)
+    order_goals = set()
+    observed_refs = {}
+    for order_id, observations in orders.items():
+        for index, (path, row) in enumerate(observations):
+            raw, flat = result_references(row)
+            observed_refs[order_id, index] = raw, flat
+            result = obj(row.get('result'))
+            direct = result.get('jobId') or row.get('resultJobId')
+            if isinstance(direct, str) and (result.get('kind') or row.get('resultKind')) == 'goal':
+                order_goals.add(direct)
+                for child in result.get('children') or row.get('resultChildren') or []:
+                    child_id = child[2] if isinstance(child, list) and len(child) >= 3 else obj(child).get('jobId')
+                    edge(child_id, direct, path)
+            for ident, question, _ in raw + flat:
+                if ident and question:
+                    question_job(question, ident)
+                    order_primary[question].add(ident)
 
-    def link_result(result, order_id):
-        """Only result IDs, never parent/continues/objective/URL guesses."""
-        if not isinstance(result, dict):
-            return
-        if result.get('jobId'):
-            linked_orders[result['jobId']].add(order_id)
-        request_id = result.get('requestId')
-        for job_id in request_jobs.get(request_id, ()):
-            linked_orders[job_id].add(order_id)
-            provenance[job_id].add('sources/api-catalog/oracle-requests.json')
-        # Explicit child results (when retained by the source).
-        for child in result.get('children') or []:
-            link_result(child, order_id)
+    representative = {}
+    ambiguous_questions = set()
+    for question, members in request_jobs.items():
+        candidates = order_primary[question]
+        if question in catalog_primary:
+            representative[question] = catalog_primary[question]
+        elif len(candidates) == 1:
+            representative[question] = next(iter(candidates))
+        elif len(members) == 1:
+            representative[question] = next(iter(members))
+        else:
+            ambiguous_questions.add(question)
+            # Keep one stable audit root while withholding both attribution and credit.
+            representative[question] = min(members)
+        for ident in members:
+            jobs.setdefault(ident, {'id': ident})
+            if ident != representative[question]:
+                edge(ident, representative[question], oracle_source)
 
-    for order_id, order in orders.items():
-        link_result(order.get('result'), order_id)
-        link_result({'jobId': order.get('resultJobId'),
-                     'requestId': order.get('resultId') if order.get('resultKind') == 'oracle' else None,
-                     'children': order.get('resultChildren')}, order_id)
-        # An order naming a workflow but no job is not direct job-payer evidence.
-        # Catalog membership groups jobs, but never manufactures wallet links.
+    def resolve(refs):
+        targets = set()
+        for ident, question, workflow in refs:
+            if not question and len(job_questions[ident]) == 1:
+                question = next(iter(job_questions[ident]))
+            target = representative.get(question, ident) or obj(workflows.get(workflow)).get('contractsJobId')
+            if target:
+                targets.add(target)
+        return targets
+
+    order_conflicts = defaultdict(dict)
+    for order_id, observations in orders.items():
+        observed_targets = set()
+        flat_projections = set()
+        raw_projections = set()
+        for index, (path, row) in enumerate(observations):
+            raw, flat = observed_refs[order_id, index]
+            raw_targets, flat_targets = resolve(raw), resolve(flat)
+            if raw_targets:
+                raw_projections.add(tuple(sorted(raw_targets)))
+            if flat_targets:
+                flat_projections.add(tuple(sorted(flat_targets)))
+            observed_targets.update(raw_targets | flat_targets)
+            for target in raw_targets | flat_targets:
+                if row.get('continues') or obj(row.get('result')).get('continues') or row.get('action') == 'job.continue':
+                    continuations[target].add(order_id)
+                jobs.setdefault(target, {'id': target})
+                provenance[target].add(path)
+            for field, original, observed in row.get('e04Conflicts') or []:
+                order_conflicts[order_id][field] = [original, observed]
+        if len(raw_projections | flat_projections) > 1:
+            order_conflicts[order_id]['result_targets'] = sorted(raw_projections | flat_projections)
+        for target in observed_targets:
+            linked_orders[target].add(order_id)
+
+    oracle_jobs = {ident for ident, questions in job_questions.items() if questions} | {ident for ident, job in jobs.items()
+                                         if job.get('template') == 'skill:oracle-assess'}
+    cutoff = timestamp(CUTOFF)
+    order_meta = {}
+    for order_id, observations in orders.items():
+        wallets, created, bounds, txs = set(), set(), set(), set()
+        failed = confirmed = False
+        for path, row in observations:
+            wallets.add(address(row.get('wallet')))
+            payment_payer = obj(row.get('payment')).get('payer')
+            if payment_payer is not None:
+                wallets.add(address(payment_payer))
+            if row.get('lookupWallet') and address(row.get('lookupWallet')) != address(row.get('wallet')):
+                wallets.add(address(row['lookupWallet']))
+            if row.get('createdAtSource') == 'intake.admission.createdAt':
+                if row.get('createdAt') is not None:
+                    bounds.add(row['createdAt'])
+            elif row.get('createdAt') is not None:
+                created.add(row['createdAt'])
+            if row.get('bound') is not None:
+                bounds.add(row['bound'])
+            fail, confirm, hashes = payment_facts(row)
+            failed |= fail
+            confirmed |= confirm
+            txs.update(hashes)
+        conflicts = order_conflicts[order_id]
+        if len(wallets) > 1:
+            conflicts['wallet'] = sorted(wallets, key=str)
+        created_times = {timestamp(value) for value in created}
+        if len(created_times) > 1:
+            conflicts['createdAt'] = sorted(created)
+        if len(txs) > 1:
+            conflicts['paymentTx'] = sorted(txs)
+        if failed and confirmed:
+            conflicts['payment_status'] = ['failed', 'confirmed']
+        bound_times = {timestamp(value) for value in bounds}
+        date, eligible = None, 'unknown'
+        if failed:
+            eligible, reason = 'false', 'explicit payment failure or refusal'
+        elif conflicts:
+            reason = 'conflicting order observations'
+        elif not confirmed:
+            reason = 'payment success unavailable'
+        elif created:
+            date = min(created)
+            dt = timestamp(date)
+            if dt is None:
+                reason = 'unreadable order createdAt'
+            elif any(bound is not None and bound < dt for bound in bound_times):
+                reason = 'admission bound precedes observed order creation'
+            else:
+                eligible, reason = ('true' if dt < cutoff else 'false'), 'observed order createdAt'
+        elif bounds and None not in bound_times and max(bound_times) < cutoff:
+            eligible, reason = 'true', 'specific order was admitted before T (intake admission.createdAt upper bound)'
+        else:
+            reason = 'no readable pre-T order creation evidence; late admission is not a creation timestamp'
+        order_meta[order_id] = {
+            'wallets': wallets, 'paid': confirmed and not failed and not conflicts,
+            'upper_bound': min(bounds, key=timestamp) if bounds and None not in bound_times else None,
+            'date': min(created) if len(created_times) == 1 else None, 'bounds': sorted(bounds),
+            'eligible': eligible, 'reason': reason, 'tx': next(iter(txs)) if len(txs) == 1 else None,
+            'conflicts': conflicts, 'sources': {path for path, _ in observations},
+        }
+
+    # Validate the complete observed graph, including edges bypassed by paid continuations.
+    def check_cycle(ident, active, seen):
+        if ident in active:
+            raise ValueError(f'Cycle in goal/workflow/oracle membership at {ident}')
+        if ident not in seen:
+            for parent in parents[ident]:
+                check_cycle(parent, active | {ident}, seen)
+            seen.add(ident)
+
+    seen = set()
+    for ident in set(jobs) | set(parents):
+        check_cycle(ident, set(), seen)
+
+    separate = set()
+    for ident, ids in continuations.items():
+        if len(linked_orders[ident]) != 1 or ident in oracle_jobs:
+            continue
+        oid = next(iter(linked_orders[ident]))
+        meta = order_meta[oid]
+        payer = jobs[ident].get('paidBy')
+        if (oid in ids and meta['paid'] and len(meta['wallets']) == 1
+                and None not in meta['wallets'] and (not payer or address(payer) in meta['wallets'])
+                and 'source_disagreement.paidBy' not in gaps[ident]):
+            separate.add(ident)
+    roots = {}
+
+    def root_of(ident):
+        if ident not in roots:
+            candidates = {root_of(p) for p in parents[ident]} if ident not in separate else set()
+            if len(candidates) > 1:
+                raise ValueError(f'Conflicting goal/workflow roots for {ident}: {sorted(candidates)}')
+            roots[ident] = next(iter(candidates), ident)
+        return roots[ident]
 
     result_rows = []
     for ident in sorted(jobs):
         job = jobs[ident]
         g = gaps[ident]
         if ident not in detailed:
-            g['detail'] = 'no detailed job record in saved job shards or late-jobs; index-only fields retained'
+            g['detail'] = 'no detailed job record in saved job shards, late jobs or e04 evidence'
         if job.get('error'):
             g['source_error'] = job['error']
-        candidates = [orders[k] for k in sorted(linked_orders[ident])]
-        payer = address(job.get('paidBy'))
-        if job.get('paidBy') and payer is None:
+        ids = sorted(linked_orders[ident])
+        order_id = ids[0] if len(ids) == 1 else None
+        order = order_meta.get(order_id)
+        job_payer = address(job.get('paidBy')) if ident not in oracle_jobs else None
+        if job.get('paidBy') and not address(job['paidBy']):
             g['paidBy'] = 'invalid address supplied by source'
-        if ident in oracle_jobs and payer:
-            g['paidBy'] = 'oracle panel linkage requires order evidence; paidBy is not used'
-            payer = None
-        order = None
-        if len(candidates) == 1:
-            order = candidates[0]
-        elif len(candidates) > 1:
-            g['order'] = 'multiple orders name job: ' + ','.join(o['orderId'] for o in candidates)
-        wallet, evidence, unlinked = payer, 'paidBy' if payer else 'none', None
-        if not payer:
-            if order and address(order.get('wallet')):
-                wallet, evidence = address(order['wallet']), 'order:' + order['orderId']
-            elif len(candidates) > 1:
-                unlinked = 'ambiguous_orders'
-            elif order:
-                unlinked = 'order_payer_missing_or_invalid'
-            elif ident in oracle_jobs:
-                unlinked = 'oracle_no_matching_order'
-            elif ident not in detailed:
-                unlinked = 'detail_unavailable_no_matching_order'
-            else:
-                unlinked = 'paidBy_missing_no_matching_order'
-        for candidate in candidates:
-            provenance[ident].update(candidate['_sources'])
-        if order and payer and address(order.get('wallet')) != payer:
-            g['payer_conflict'] = 'paidBy takes precedence over disagreeing order wallet; order still controls cutoff'
-        if candidates:
-            basis = order.get('createdAt') if order else None
-            eligibility_reason = 'order createdAt' if order else 'multiple matching orders; no order selected'
-        else:
-            basis = job.get('createdAt')
-            eligibility_reason = 'no order seen; job createdAt fallback (order coverage is incomplete)'
-        dt = timestamp(basis)
-        eligible = 'unknown' if dt is None else ('true' if dt < timestamp(CUTOFF) else 'false')
-        if dt is None:
-            eligibility_reason += '; timestamp missing or invalid'
+        ambiguous_oracle = (len(job_questions[ident]) > 1 or bool(job_questions[ident] & ambiguous_questions)
+                            or 'source_disagreement.oracleRequestId' in g)
+        payers = {job_payer} if job_payer else set()
+        for candidate in ids:
+            meta = order_meta[candidate]
+            payers.update(meta['wallets'] - {None})
+            provenance[ident].update(meta['sources'])
+            if meta['conflicts']:
+                g.setdefault('order_conflicts', {})[candidate] = meta['conflicts']
+        if 'source_disagreement.paidBy' in g and ident not in oracle_jobs:
+            payers.update(address(c['observed']) for c in g['source_disagreement.paidBy'])
+        wallet = next(iter(payers)) if len(payers) == 1 else None
+        evidence, unlinked = 'none', None
+        eligible, eligibility_reason = 'unknown', 'no matching order; job time cannot establish paid order creation'
+        if len(payers) > 1 or 'source_disagreement.paidBy' in g and ident not in oracle_jobs:
+            wallet = None
+            g['payer_conflict'] = sorted(payers, key=str)
+            unlinked, eligibility_reason = 'conflicting_payers', 'conflicting payer observations'
+        elif ambiguous_oracle:
+            wallet = None
+            unlinked, eligibility_reason = 'ambiguous_oracle_identity', 'conflicting oracle request/job identity'
+        elif len(ids) > 1:
+            g['order'] = ids
+            unlinked = 'ambiguous_orders' if not wallet else None
+            eligibility_reason = 'multiple matching orders; no order selected'
+        elif order:
+            eligible, eligibility_reason = order['eligible'], order['reason']
+            if wallet not in order['wallets'] or None in order['wallets']:
+                eligible, eligibility_reason = 'unknown', 'order payer unavailable or unresolved'
+            if order['bounds']:
+                g['order_admission_bounds'] = order['bounds']
+        if wallet:
+            evidence = 'order:' + order_id if order and order['wallets'] == {wallet} else (
+                'paidBy' if job_payer == wallet else 'ambiguous_orders_same_wallet')
+        elif not unlinked:
+            unlinked = ('order_payer_missing_or_invalid' if order else
+                        'oracle_no_matching_order' if ident in oracle_jobs else
+                        'detail_unavailable_no_matching_order' if ident not in detailed else
+                        'paidBy_missing_no_matching_order')
         root_id = root_of(ident)
         status, status_reason = classify_status(job)
-        is_goal = ident in goals or job.get('template') in ('goal', 'skill:goal-orchestrator')
-        category, category_reason = classify_category(job, is_goal)
+        is_goal = ident in goals or ident in order_goals or job.get('template') in ('goal', 'skill:goal-orchestrator')
+        if ident in oracle_jobs and not is_goal:
+            category, category_reason = 'oracle/indexer', 'explicit oracle template or request membership'
+        else:
+            category, category_reason = classify_category(job, is_goal)
         node_roles = roles(job.get('nodeRoles'))
         versions = job.get('projectVersions')
         if versions is not None and (not isinstance(versions, list) or any(not isinstance(v, str) for v in versions)):
@@ -391,7 +598,7 @@ def build(root):
         scope = {'nodes': node_count, 'roles': node_roles, 'launch_kind': job.get('launchKind'),
                  'chain': job.get('launchChainId'), 'versions': versions,
                  'version_count': len(set(versions)) if versions is not None else None}
-        request_chains = {r['chainId'] for r in job_requests[ident] if r.get('chainId') is not None}
+        request_chains = {r['chainId'] for r in (requests[q] for q in job_questions[ident] if q in requests) if r.get('chainId') is not None}
         if scope['chain'] is None and len(request_chains) == 1:
             scope['chain'] = request_chains.pop()
             provenance[ident].add('sources/api-catalog/oracle-requests.json')
@@ -408,11 +615,12 @@ def build(root):
                         'media_files': job.get('mediaFiles'), 'result_files': job.get('resultFiles'),
                         'result_file_names': job.get('resultFileNames'), 'result_complete': job.get('resultComplete')}
         # True means a saved explicit success signal, not external verification.
-        positive = bool(deliverables['commit'] or deliverables['site'] or
-                        deliverables['launch_status'] == 'live' or
-                        (nonnegative(deliverables['media_files']) or 0) > 0 or
-                        (nonnegative(deliverables['result_files']) or 0) > 0 or
-                        deliverables['result_complete'] is True)
+        oracle_statuses = {requests[q]['status'] for q in job_questions[ident]
+                           if q in requests and requests[q].get('status') is not None}
+        attested = oracle_statuses == {'attested'} and not ambiguous_oracle
+        positive = deliverables['launch_status'] == 'live' or attested or (
+            deliverables['result_complete'] is True and ident not in oracle_jobs)
+        deliverables['oracle_attested'] = True if attested else None
         deliverable_ok = True if positive else False if deliverables['result_complete'] is False else None
         accepted = nonnegative(job.get('nodesAccepted'))
         if accepted is not None and node_count is not None and accepted > node_count:
@@ -433,21 +641,89 @@ def build(root):
         if status is None:
             g['status'] = status_reason
         if root_id != ident:
-            grouping_reason = 'explicit goal child or workflow frontend; transitive root'
-            provenance[ident].update(['sources/api-catalog/goals.json', 'sources/api-catalog/workflows.json'])
+            grouping_reason = 'explicit goal/workflow membership or duplicate panel; transitive canonical root'
+            provenance[ident].update(graph_sources[ident])
             if root_id not in jobs:
-                g['counted_under'] = 'root referenced by catalog but absent from index/late union; child still excluded'
+                g['counted_under'] = 'root referenced by catalog but absent from job evidence; child still excluded'
         else:
-            grouping_reason = 'oracle panel is its own root' if ident in oracle_jobs else 'no explicit goal/workflow parent; parentJobId never deduplicates continuations'
+            grouping_reason = 'separately paid continuation' if ident in separate else 'canonical root'
         result_rows.append(dict(zip(FIELDS, [
             ident, job.get('createdAt'), job.get('template'), job.get('state'), wallet,
             evidence, unlinked, wallet in holders if wallet else None,
-            order.get('orderId') if order else None, order.get('createdAt') if order else None,
+            order_id, order['date'] if order else None,
             eligible, root_id, eligible == 'true' and wallet is not None and root_id == ident,
             status, category, scope, complexity, deliverables, deliverable_ok, quality, is_goal,
-            category_reason, status_reason, eligibility_reason, grouping_reason, g, sorted(provenance[ident])
+            category_reason, status_reason, eligibility_reason, grouping_reason, g, sorted(provenance[ident]),
+            next(iter(job_questions[ident])) if len(job_questions[ident]) == 1 else None,
+            order['tx'] if order else None, order['upper_bound'] if order else None
         ])))
+    aggregate_children(result_rows, job_questions, representative)
+    validate_rows(result_rows)
     return result_rows
+
+
+def aggregate_children(rows, job_questions, representative):
+    by_id = {r['job_id']: r for r in rows}
+    members = defaultdict(list)
+    for row in rows:
+        ident, parent = row['job_id'], row['counted_under']
+        if parent == ident or parent not in by_id:
+            continue
+        root = by_id[parent]
+        root['sources'] = sorted(set(root['sources']) | set(row['sources']))
+        questions = job_questions[ident]
+        if questions and any(representative[q] != ident for q in questions):
+            continue  # Panel copies do not inflate the evidence for a question.
+        if row['data_gaps'].get('payer_conflict') or (
+                row['wallet'] and root['wallet'] and row['wallet'] != root['wallet']):
+            root['data_gaps'].setdefault('child_payer_conflicts', []).append(ident)
+            root['counts'] = False
+            root['eligible'] = 'unknown'
+            root['eligibility_reason'] = 'canonical membership has conflicting payer evidence'
+            continue
+        members[parent].append(row)
+    for ident, children in members.items():
+        root = by_id[ident]
+        work = [root, *children]
+        root['scope']['children'] = [{'job_id': row['job_id'], **row['scope']} for row in children]
+        root['deliverables']['children'] = [
+            {'job_id': row['job_id'], 'deliverable_ok': row['deliverable_ok'], **row['deliverables']}
+            for row in children]
+        root['quality']['children'] = [{'job_id': row['job_id'], **row['quality']} for row in children]
+        root['complexity'] = sum(row['complexity'] for row in work)
+        if any(row['deliverable_ok'] is True for row in work):
+            root['deliverable_ok'] = True
+            root['data_gaps'].pop('deliverable_ok', None)
+        # Weight only rows with both observed accepted and total nodes.
+        measured = [(row['quality']['nodes_accepted'], row['scope']['nodes']) for row in work
+                    if row['quality']['accepted_share'] is not None]
+        if measured:
+            root['quality']['accepted_share'] = round(
+                sum(a for a, _ in measured) / sum(n for _, n in measured), 8)
+            gap = root['data_gaps'].get('quality.null_fields')
+            if gap and 'accepted_share' in gap['fields']:
+                gap['fields'].remove('accepted_share')
+
+
+def validate_rows(rows):
+    by_id = {row['job_id']: row for row in rows}
+    if len(by_id) != len(rows):
+        raise ValueError('Duplicate normalized job IDs')
+    questions = set()
+    for row in rows:
+        root = by_id.get(row['counted_under'])
+        if root and root['counted_under'] != root['job_id']:
+            raise ValueError(f"{row['job_id']}: nonterminal canonical root")
+        if row['counts'] and (root is not row or row['eligible'] != 'true'
+                              or not row['wallet'] or not row['order_id']):
+            raise ValueError(f"{row['job_id']}: counted work lacks a canonical eligible paid order")
+        if row['counts'] and row['oracle_request_id']:
+            question = row['oracle_request_id']
+            if question in questions:
+                raise ValueError(f'Duplicate counted oracle question: {question}')
+            questions.add(question)
+        if not row['wallet'] and not row['unlinked_reason']:
+            raise ValueError(f"{row['job_id']}: missing unlinked reason")
 
 
 def encode(rows):
@@ -472,13 +748,13 @@ def summary(rows):
             'counted_by_category': counts('category', counted)}
 
 
-def main(argv=None):
+def main(argv=None, *, verify_shards=True):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT, help='input/output checkout (also supports fixtures)')
     parser.add_argument('--check', action='store_true', help='compare exact bytes; do not write')
     args = parser.parse_args(argv)
     try:
-        rows = build(args.root)
+        rows = build(args.root, verify_shards=verify_shards)
         expected = encode(rows)
         path = args.root / 'jobs.csv'
         print(compact(summary(rows)))

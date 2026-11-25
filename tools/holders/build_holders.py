@@ -17,6 +17,8 @@ COLUMNS = (
     "wallet", "eth_balance_raw", "rh_balance_raw", "total_balance_raw",
     "eth_balance", "rh_balance", "total_balance", "on_ethereum", "on_robinhood",
     "is_contract_eth", "is_contract_rh",
+    "eth_code_kind", "eth_code_block", "eth_code_read_started_at", "eth_code_read_finished_at",
+    "rh_code_kind", "rh_code_block_tag", "rh_code_source_fetched_at",
 )
 HOLDER_COLUMNS = ("wallet", "balanceRaw", "isContract")
 SCALE = 10**18
@@ -59,7 +61,7 @@ def load_chain(source_dir):
         f"{source_dir.name}: {len(records)} source rows, {len(positive)} positive holders, "
         f"sum {balance_sum} raw; supply, uniqueness, nonnegative balances and digest PASS ({digest})"
     )
-    return positive
+    return positive, source, scan
 
 
 def decimal_text(raw):
@@ -73,10 +75,81 @@ def flag(value):
     return "true" if value else "false"
 
 
-def build_csv(root):
-    ethereum, robinhood = (
-        load_chain(root / "sources" / f"chain-{chain}") for chain in CHAINS
-    )
+def verify_scan(scan, block):
+    start = scan['firstBlock']
+    total = 0
+    for first, last, count, *_ in scan['rows']:
+        if first != start or last < first or type(count) is not int or count < 0:
+            raise ValueError('Invalid or noncontiguous Transfer scan range')
+        start = last + 1
+        total += count
+    if start != block + 1 or total != scan['totalLogs']:
+        raise ValueError('Transfer scan coverage does not match the snapshot')
+
+
+def verify_ethereum(root, holders, scan, block):
+    evidence = root / 'sources/e04-chain-ethereum'
+    balances = json.loads((evidence / 'balances.json').read_bytes())
+    code = json.loads((evidence / 'code.json').read_bytes())
+    replay = json.loads((evidence / 'replay-tenderly.json').read_bytes())
+    for doc in (balances, code):
+        if doc['block'] != block or doc['unread']:
+            raise ValueError('Incomplete Ethereum snapshot evidence')
+        if len({row[0] for row in doc['rows']}) != len(doc['rows']):
+            raise ValueError('Duplicate wallet in Ethereum evidence')
+    if (len(balances['rows']) != scan['addressesSeen']
+            or {w: int(raw) for w, raw, _ in balances['rows'] if raw != '0'}
+            != {w: balance for w, (balance, _) in holders.items()}
+            or any(not isinstance(raw, str) or not re.fullmatch(r'0|[1-9][0-9]*', raw)
+                   for _, raw, _ in balances['rows'])):
+        raise ValueError('Ethereum balanceOf and Transfer balances differ')
+    if (replay['holderMismatchCount'] or replay['chunkCounts'] != [r[2] for r in scan['rows']]
+            or any(replay['totals'][k] != scan[k] for k in ('holdersDigest', 'logsDigest', 'sumRaw'))):
+        raise ValueError('Ethereum replay evidence differs from saved scan')
+    kinds = {}
+    delegates = {}
+    for wallet, kind, size, value in code['rows']:
+        if kind == 'eip7702' and size == 23 and re.fullmatch(r'0x[0-9a-f]{40}', value or ''):
+            delegates[wallet] = value
+        elif not ((kind == 'none' and size == 0 and value is None) or
+                  (kind == 'contract' and size > 0 and re.fullmatch(r'[0-9a-f]{64}', value or ''))):
+            raise ValueError(f'Invalid code evidence for {wallet}')
+        kinds[wallet] = kind
+    if (kinds.keys() != holders.keys() or delegates != dict(scan['eip7702Delegated'])
+            or any(flag != (kinds[w] != 'none') for w, (_, flag) in holders.items())):
+        raise ValueError('Ethereum account-code evidence disagrees with holder flags')
+    return {wallet: (kind, block, code['utc'], code['finishedUtc']) for wallet, kind in kinds.items()}
+
+
+def verify_robinhood(root, scan, block):
+    evidence = json.loads((root / 'sources/e04-chain-robinhood/rpc-observations.json').read_bytes())
+    if evidence['snapshot']['block'] != block:
+        raise ValueError('Robinhood corroboration has the wrong snapshot block')
+    for name in ('holders.json', 'scan.json', 'payments.json'):
+        path = root / 'sources/chain-robinhood' / name
+        if hashlib.sha256(path.read_bytes()).hexdigest() != evidence['sourceFileSha256'][name]:
+            raise ValueError(f'Robinhood source digest mismatch: {name}')
+    expected = {'holders': scan['holderCount'], 'holdersDigest': scan['holdersDigest'],
+                'logs': scan['totalLogs'], 'supplyRaw': scan['supplyRaw']}
+    if any(evidence['savedDatasetSummary'][k] != v for k, v in expected.items()):
+        raise ValueError('Robinhood corroboration disagrees with saved scan')
+
+
+def build_csv(root, verify_evidence=True):
+    ethereum, _, eth_scan = load_chain(root / 'sources/chain-ethereum')
+    robinhood, rh_source, rh_scan = load_chain(root / 'sources/chain-robinhood')
+    eth_code = {}
+    if verify_evidence:
+        snapshot = json.loads((root / 'snapshot.json').read_bytes())
+        eth_block, rh_block = (snapshot['chains'][chain]['block'] for chain in CHAINS)
+        if (snapshot['snapshotTime'], eth_block, rh_block) != ('2026-11-25T11:00:00Z', 26491756, 122989778):
+            raise ValueError('Holder inputs must use the fixed batch snapshot')
+        verify_scan(eth_scan, eth_block)
+        verify_scan(rh_scan, rh_block)
+        eth_code = verify_ethereum(root, ethereum, eth_scan, eth_block)
+        verify_robinhood(root, rh_scan, rh_block)
+        if rh_source['coverage']['isContractReadAt'] != 'latest':
+            raise ValueError('Unexpected Robinhood account-code observation tag')
     wallets = sorted(ethereum.keys() | robinhood.keys())
     output = io.StringIO(newline="")
     writer = csv.writer(output, lineterminator="\n")
@@ -88,18 +161,22 @@ def build_csv(root):
         writer.writerow((
             wallet, eth, rh, total, decimal_text(eth), decimal_text(rh), decimal_text(total),
             flag(eth > 0), flag(rh > 0), flag(eth_contract), flag(rh_contract),
+            *eth_code.get(wallet, ('', '', '', '')),
+            ('nonempty_unclassified' if rh_contract else 'none') if rh_contract is not None else '',
+            rh_source.get('coverage', {}).get('isContractReadAt', '') if rh_contract is not None else '',
+            rh_source.get('fetchedAt', '') if rh_contract is not None else '',
         ))
     print(f"Both chains: {len(ethereum.keys() & robinhood.keys())}; CSV data rows: {len(wallets)}")
     return output.getvalue().encode("ascii")
 
 
-def main(root=ROOT, argv=None):
+def main(root=ROOT, argv=None, *, verify_evidence=True):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="compare rebuilt bytes without writing")
     arguments = parser.parse_args(argv)
     path = root / "holders.csv"
     try:
-        rebuilt = build_csv(root)
+        rebuilt = build_csv(root, verify_evidence)
         if arguments.check:
             if path.read_bytes() != rebuilt:
                 print("FAIL: holders.csv differs from the offline rebuild", file=sys.stderr)
