@@ -1,0 +1,1 @@
+{"source":"https://api.imd.fun/jobs/<id>, /jobs/<id>/result","fetchedAt":"2026-11-25T13:04:18.773888Z","coverage":{"cutoff":"2026-11-25T11:00:00Z","candidateJobs":0,"note":"Orders created in [T minus 24h, T) naming a job created at or after T. One row per order.","wallets":1092},"errors":[],"columns":["wallet","orderId","jobId","createdAt","detail","result"],"rows":[]}
