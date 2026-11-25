@@ -1,0 +1,119 @@
+{
+  "snapshotTime": "2026-11-25T11:00:00Z",
+  "snapshotUnix": 1795604400,
+  "rule": "On each chain, use the last block whose timestamp is at or before the snapshot time.",
+  "orderCutoff": "only orders created before 2026-11-25T11:00:00Z count",
+  "chains": {
+    "ethereum": {
+      "chainId": 1,
+      "token": "0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7",
+      "block": 26491756,
+      "blockHash": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4",
+      "blockTimestamp": 1795604399,
+      "blockTimeUtc": "2026-11-25T10:59:59Z"
+    },
+    "robinhood": {
+      "chainId": 4663,
+      "token": "0x5f7bb59365ce557c26dbcaa4ee9d39a4b95b7127",
+      "block": 122989778,
+      "blockHash": "0xed7b0b82d314693301461f419e86b566e2d0705be150fa8a5a893cd06db054a3",
+      "blockTimestamp": 1795604400,
+      "blockTimeUtc": "2026-11-25T11:00:00Z"
+    }
+  },
+  "verified": {
+    "ethereum": {
+      "endpointsAgreed": [
+        "https://gateway.tenderly.co/public/mainnet",
+        "https://eth.drpc.org"
+      ],
+      "checksByEndpoint": {
+        "https://gateway.tenderly.co/public/mainnet": {
+          "blockNumberMatches": true,
+          "blockHashMatches": true,
+          "blockTimestampMatches": true,
+          "nextBlockNumberMatches": true,
+          "blockAtOrBeforeSnapshot": true,
+          "nextBlockLinksToBlock": true,
+          "nextBlockAfterSnapshot": true,
+          "blockAtOrBelowFinalized": true
+        },
+        "https://eth.drpc.org": {
+          "blockNumberMatches": true,
+          "blockHashMatches": true,
+          "blockTimestampMatches": true,
+          "nextBlockNumberMatches": true,
+          "blockAtOrBeforeSnapshot": true,
+          "nextBlockLinksToBlock": true,
+          "nextBlockAfterSnapshot": true,
+          "blockAtOrBelowFinalized": true
+        }
+      },
+      "twoRpcEndpointsAgree": true
+    },
+    "robinhood": {
+      "endpointsAgreed": [
+        "https://rpc.mainnet.chain.robinhood.com",
+        "https://robinhood-rpc.publicnode.com"
+      ],
+      "checksByEndpoint": {
+        "https://rpc.mainnet.chain.robinhood.com": {
+          "blockNumberMatches": true,
+          "blockHashMatches": true,
+          "blockTimestampMatches": true,
+          "nextBlockNumberMatches": true,
+          "blockAtOrBeforeSnapshot": true,
+          "nextBlockLinksToBlock": true,
+          "nextBlockAfterSnapshot": true,
+          "blockAtOrBelowFinalized": true
+        },
+        "https://robinhood-rpc.publicnode.com": {
+          "blockNumberMatches": true,
+          "blockHashMatches": true,
+          "blockTimestampMatches": true,
+          "nextBlockNumberMatches": true,
+          "blockAtOrBeforeSnapshot": true,
+          "nextBlockLinksToBlock": true,
+          "nextBlockAfterSnapshot": true,
+          "blockAtOrBelowFinalized": true
+        },
+        "https://robinhoodchain.blockscout.com/api/v2/blocks": {
+          "blockNumberMatches": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "blockHashMatches": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "blockTimestampMatches": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "blockAtOrBeforeSnapshot": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "nextBlockNumberMatches": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "nextBlockLinksToBlock": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "nextBlockAfterSnapshot": {
+            "status": "not run",
+            "reason": "Explorer returned HTTP 403 with an HTML challenge page."
+          },
+          "blockAtOrBelowFinalized": {
+            "status": "not run",
+            "reason": "Only numbered block lookups were attempted through the explorer REST API."
+          }
+        }
+      },
+      "twoRpcEndpointsAgree": true
+    }
+  },
+  "mismatch": []
+}

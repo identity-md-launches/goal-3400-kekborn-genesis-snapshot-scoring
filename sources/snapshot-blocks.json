@@ -1,0 +1,127 @@
+{
+  "chains": {
+    "ethereum": {
+      "https://gateway.tenderly.co/public/mainnet": {
+        "type": "rpc",
+        "reads": {
+          "block": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 26491756,
+            "timestamp": 1795604399,
+            "parentHash": "0x0a405db34a7264fb819932c9b57381e3b60344b9401bef528206b47ed6583e3f",
+            "hash": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4"
+          },
+          "nextBlock": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 26491757,
+            "timestamp": 1795604411,
+            "parentHash": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4",
+            "hash": "0xda58e6dd79079d1c19b7b4ccd26031d3cb7e49b19d98cc552cb7b3531aff41d7"
+          },
+          "finalized": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 26491866
+          }
+        }
+      },
+      "https://eth.drpc.org": {
+        "type": "rpc",
+        "reads": {
+          "block": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 26491756,
+            "timestamp": 1795604399,
+            "parentHash": "0x0a405db34a7264fb819932c9b57381e3b60344b9401bef528206b47ed6583e3f",
+            "hash": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4"
+          },
+          "nextBlock": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 26491757,
+            "timestamp": 1795604411,
+            "parentHash": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4",
+            "hash": "0xda58e6dd79079d1c19b7b4ccd26031d3cb7e49b19d98cc552cb7b3531aff41d7"
+          },
+          "finalized": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 26491866
+          }
+        }
+      }
+    },
+    "robinhood": {
+      "https://rpc.mainnet.chain.robinhood.com": {
+        "type": "rpc",
+        "reads": {
+          "block": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 122989778,
+            "timestamp": 1795604400,
+            "parentHash": "0xdc11c9bdae3c4e1f7d3bec406a1f53ba2e9f884935541e67920a48fe9fc1d67b",
+            "hash": "0xed7b0b82d314693301461f419e86b566e2d0705be150fa8a5a893cd06db054a3"
+          },
+          "nextBlock": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 122989779,
+            "timestamp": 1795604401,
+            "parentHash": "0xed7b0b82d314693301461f419e86b566e2d0705be150fa8a5a893cd06db054a3",
+            "hash": "0x5a76ed1c5d246daf36550310f484871c41fc616791e81d68c8932eae85acca44"
+          },
+          "finalized": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 123000933
+          }
+        }
+      },
+      "https://robinhood-rpc.publicnode.com": {
+        "type": "rpc",
+        "reads": {
+          "block": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 122989778,
+            "timestamp": 1795604400,
+            "parentHash": "0xdc11c9bdae3c4e1f7d3bec406a1f53ba2e9f884935541e67920a48fe9fc1d67b",
+            "hash": "0xed7b0b82d314693301461f419e86b566e2d0705be150fa8a5a893cd06db054a3"
+          },
+          "nextBlock": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 122989779,
+            "timestamp": 1795604401,
+            "parentHash": "0xed7b0b82d314693301461f419e86b566e2d0705be150fa8a5a893cd06db054a3",
+            "hash": "0x5a76ed1c5d246daf36550310f484871c41fc616791e81d68c8932eae85acca44"
+          },
+          "finalized": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 200,
+            "number": 123000933
+          }
+        }
+      },
+      "https://robinhoodchain.blockscout.com/api/v2/blocks": {
+        "type": "explorer",
+        "reads": {
+          "block": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 403,
+            "error": "HTTP 403 with an HTML challenge page"
+          },
+          "nextBlock": {
+            "readTimeUtc": "2026-11-25T11:40:43Z",
+            "httpStatus": 403,
+            "error": "HTTP 403 with an HTML challenge page"
+          }
+        }
+      }
+    }
+  }
+}
