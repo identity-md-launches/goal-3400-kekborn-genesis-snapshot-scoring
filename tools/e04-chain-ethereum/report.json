@@ -1,0 +1,271 @@
+{
+ "target": "genesis-repair-e04/ethereum",
+ "block": 26491756,
+ "snapshotTime": "2026-11-25T11:00:00Z",
+ "token": "0xd34a99bc0f67ae1bbd63c660e6d0b0dd03e263b7",
+ "hashes": {
+  "sources/e04-chain-ethereum/replay-tenderly.json": "83407195cd45fc59f05fe1ce2ff4b24a5ccfd562b36173f879d90862af9c11d8",
+  "sources/e04-chain-ethereum/replay-mevblocker.json": "b74ffd2834f9170f8561118c1558bdc936813fe541c40ffb09d4d04d8fbaf500",
+  "sources/e04-chain-ethereum/windows.json": "ff61c5b316d359d065c087c4605b4e50c710f63353843695b1dbb928158be177",
+  "sources/e04-chain-ethereum/balances.json": "9e3cd1841019f6fa0bca62fd449bff84eb574f9289bec722461287fb6c9916f8",
+  "sources/e04-chain-ethereum/code.json": "29bd66e57897e2b449f34e65e331cfb0406a7ec7c7f3de174a9588e3ff40f0dc",
+  "sources/e04-chain-ethereum/state-calls.json": "aa3c0ae651ef9efa67d8e3f2a82afd8d2f6336019ee35146dbd20cd03206467c",
+  "sources/e04-chain-ethereum/imd-capabilities.json": "9e74ea029e000638ecad9fe63f7e72a7adf0c974ad6a640ad57871d8e61e2d56",
+  "snapshot.json": "b94dc67d27bc6aaa49811431ee68a3fd25d6c90f09de8fde0f1920792d7dd425",
+  "sources/snapshot-blocks.json": "102297f76a6b5755fde2c91d13386221a272da3583bf7ac5986accdfdf1b61b0",
+  "sources/chain-ethereum/holders.json": "af6eb561b70b77028e651fd4f598a947f2bdafac40893f09446454b28cfcebb3",
+  "sources/chain-ethereum/payments.json": "7742994a3199b2ab9258a0e89a6a64ff2ebbbd0f8e6da2c4005dc77f757c2a2e",
+  "sources/chain-ethereum/scan.json": "158bb3a458b639eae9b99e5402fab47f89e49bfeefecbfa925ad71a0fe57af40",
+  "tools/collect/chain-ethereum/collect.py": "bc46041ba55bcf01f1385337261a77d75cf93495a18c3dd47fb5a01555645ea2",
+  "tools/collect/chain-ethereum/check.py": "6e0d3512d172d5883938b80a3ac523e3b5139b23a70c35bbbeaea0ca4ec5d104",
+  "tools/e04-chain-ethereum/verify_chain.py": "274bb5a43e70661edd8891f99ca109250752311a2faaab7026c1528a186eee64"
+ },
+ "results": [
+  {
+   "check": "source invariants: tools/collect/chain-ethereum/check.py",
+   "status": "pass",
+   "detail": "exit 0, 33 ok lines"
+  },
+  {
+   "check": "source: scan pinned to snapshot.json block and hash",
+   "status": "pass",
+   "detail": "26491756 0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4"
+  },
+  {
+   "check": "source: totals equal the brief's baseline",
+   "status": "pass",
+   "detail": "349832 logs, 4840 holders, supply 4210819525771000000000000"
+  },
+  {
+   "check": "https://gateway.tenderly.co/public/mainnet: block 26491756 hash/time, next block links and is after T",
+   "status": "pass",
+   "detail": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4 2026-11-25T10:59:59Z, next 0xda58e6dd79079d1c19b7b4ccd26031d3cb7e49b19d98cc552cb7b3531aff41d7 at 2026-11-25T11:00:11Z"
+  },
+  {
+   "check": "https://gateway.tenderly.co/public/mainnet: token has no code at block 23501862 and code at 23501863 (first block)",
+   "status": "pass",
+   "detail": "code 22990 bytes"
+  },
+  {
+   "check": "https://gateway.tenderly.co/public/mainnet: totalSupply() at 26491756 equals sum of holder balances",
+   "status": "pass",
+   "detail": "4210819525771000000000000"
+  },
+  {
+   "check": "https://gateway.tenderly.co/public/mainnet: 25 deterministic balanceOf samples (scan.balanceOfSample) equal holders.json",
+   "status": "pass",
+   "detail": "25 of 25 served, 25 equal"
+  },
+  {
+   "check": "https://rpc.mevblocker.io: block 26491756 hash/time, next block links and is after T",
+   "status": "pass",
+   "detail": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4 2026-11-25T10:59:59Z, next 0xda58e6dd79079d1c19b7b4ccd26031d3cb7e49b19d98cc552cb7b3531aff41d7 at 2026-11-25T11:00:11Z"
+  },
+  {
+   "check": "https://rpc.mevblocker.io: token has no code at block 23501862 and code at 23501863 (first block)",
+   "status": "pass",
+   "detail": "code 22990 bytes"
+  },
+  {
+   "check": "https://rpc.mevblocker.io: totalSupply() at 26491756 equals sum of holder balances",
+   "status": "pass",
+   "detail": "4210819525771000000000000"
+  },
+  {
+   "check": "https://rpc.mevblocker.io: 25 deterministic balanceOf samples (scan.balanceOfSample) equal holders.json",
+   "status": "pass",
+   "detail": "25 of 25 served, 25 equal"
+  },
+  {
+   "check": "https://eth.drpc.org: block 26491756 hash/time, next block links and is after T",
+   "status": "pass",
+   "detail": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4 2026-11-25T10:59:59Z, next 0xda58e6dd79079d1c19b7b4ccd26031d3cb7e49b19d98cc552cb7b3531aff41d7 at 2026-11-25T11:00:11Z"
+  },
+  {
+   "check": "https://eth.drpc.org: token has no code at block 23501862 and code at 23501863 (first block)",
+   "status": "pass",
+   "detail": "code 22990 bytes"
+  },
+  {
+   "check": "https://eth.drpc.org: totalSupply() at 26491756 equals sum of holder balances",
+   "status": "pass",
+   "detail": "4210819525771000000000000"
+  },
+  {
+   "check": "https://eth.drpc.org: 25 deterministic balanceOf samples (scan.balanceOfSample) equal holders.json",
+   "status": "pass",
+   "detail": "25 of 25 served, 25 equal"
+  },
+  {
+   "check": "https://ethereum-rpc.publicnode.com: block 26491756 hash/time, next block links and is after T",
+   "status": "pass",
+   "detail": "0xcf579ca7207cbf6760375d4d82669e9caee0dc3c2182f64b5b7aaca0f1b57dc4 2026-11-25T10:59:59Z, next 0xda58e6dd79079d1c19b7b4ccd26031d3cb7e49b19d98cc552cb7b3531aff41d7 at 2026-11-25T11:00:11Z"
+  },
+  {
+   "check": "https://ethereum-rpc.publicnode.com: first block code",
+   "status": "unavailable",
+   "detail": "HTTP 403 {\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32602,\"message\":\"Archive requests require a personal token. Get one at: https://www.allnodes.com/publicnode\"},\"id\":1}"
+  },
+  {
+   "check": "https://ethereum-rpc.publicnode.com: totalSupply() at 26491756",
+   "status": "unavailable",
+   "detail": "HTTP 403 {\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32602,\"message\":\"Archive requests require a personal token. Get one at: https://www.allnodes.com/publicnode\"},\"id\":1}"
+  },
+  {
+   "check": "block hash, time and supply agree on at least 3 public endpoints",
+   "status": "pass",
+   "detail": "tenderly, mevblocker, drpc"
+  },
+  {
+   "check": "balanceOf at 26491756 for every address the replay saw (15959, https://rpc.mevblocker.io)",
+   "status": "pass",
+   "detail": "15959 read, 0 unread, 0 differ, 4840 positive = holders.json, sum 4210819525771000000000000"
+  },
+  {
+   "check": "eth_getCode of every holder: EIP-7702 delegated set equals scan.eip7702Delegated",
+   "status": "pass",
+   "detail": "1514 delegated (0xef0100 + delegate), 381 with contract code, 2945 without code"
+  },
+  {
+   "check": "isContract true is exactly delegated + contract code; balances of all of them retained",
+   "status": "pass",
+   "detail": "381 ordinary contracts, 1514 EIP-7702 wallets"
+  },
+  {
+   "check": "tenderly replay: 180 windows adjacent, aligned to scan chunks, 23501863-26491756",
+   "status": "pass",
+   "detail": "2026-11-25T14:54:13Z to 2026-11-25T14:55:31Z"
+  },
+  {
+   "check": "tenderly replay: per-chunk log counts equal all 1496 scan rows",
+   "status": "pass",
+   "detail": 349832
+  },
+  {
+   "check": "tenderly replay: no duplicate log, foreign/removed log or log outside range",
+   "status": "pass",
+   "detail": "0"
+  },
+  {
+   "check": "tenderly replay: mint/burn accounting equals scan and totalSupply",
+   "status": "pass",
+   "detail": "7218 mints 7029842583603000000000000, 5736 burns 2819023057832000000000000"
+  },
+  {
+   "check": "tenderly replay: holders digest, logs digest, addresses seen, every balance",
+   "status": "pass",
+   "detail": "b7821f527799170ea380616debdc2a18ced45554acfd8a920ef458f08224a321 / a75d601aad139108cdc27668886af906e381d91f05f692f319ca6f0e3dcdc900"
+  },
+  {
+   "check": "tenderly replay: payment rows (incl. blockTime) equal payments.json",
+   "status": "pass",
+   "detail": "7399 rows, digest b738ea31d3f999f103e7070dd88159331922114220154c01a536fd0f9b49166c"
+  },
+  {
+   "check": "full replay on https://rpc.mevblocker.io",
+   "status": "unavailable",
+   "detail": "HTTP 429 error code: 1015 at 2026-11-25T14:55:46Z"
+  },
+  {
+   "check": "window first chunk 23501863-23503862 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "2 logs (scan chunk 2), 0 payment rows equal payments.json"
+  },
+  {
+   "check": "window last chunk 26489863-26491756 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "89 logs (scan chunk 89), 6 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26038364-26038463 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "29 logs, 2 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26491636-26491735 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "3 logs, 1 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26115618-26115717 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "47 logs, 16 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26142789-26142888 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "514 logs, 32 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26145371-26145470 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "133 logs, 41 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26155941-26156040 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "157 logs, 29 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26184858-26184957 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "76 logs, 5 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26213515-26213614 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "153 logs, 14 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26260000-26260099 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "24 logs, 1 payment rows equal payments.json"
+  },
+  {
+   "check": "window payment window 26341626-26341725 equal on https://eth.drpc.org, https://gateway.tenderly.co/public/mainnet, https://rpc.mevblocker.io",
+   "status": "pass",
+   "detail": "11 logs, 3 payment rows equal payments.json"
+  },
+  {
+   "check": "payments: API job.open on eip155:1 pays this token to payTo; rows are into (in) or out of payTo",
+   "status": "pass",
+   "detail": "7384 in (7359 of 0.5 IMD), 15 out; https://api.imd.fun/requests/capabilities at 2026-11-25T14:57:25Z"
+  },
+  {
+   "check": "payments: API chain 1 entry names this token, payTo and exactly the watched intakes; no Transfer touches an intake",
+   "status": "pass",
+   "detail": "intakes 0x1397434cd35e8a9c8ac312a61d3a285eb31dea56, 0xa43e6f75ee006411f79ac1c84120606c2330de82: 0 transfers; IMD moves payer -> payTo directly, so payment rows are payer->payTo"
+  }
+ ],
+ "narrative": {
+  "summary": "Independent verification of sources/chain-ethereum/ (holders.json, payments.json, scan.json) at block 26491756 (0xcf579ca7...7dc4, 2026-11-25T10:59:59Z; next block 11:00:11Z, after T=2026-11-25T11:00:00Z). A full independent replay of every Transfer log of the token (blocks 23501863-26491756) on a public endpoint reproduced the saved scan exactly. No discrepancy was found, so no source or collector file was changed (before/after hashes are identical; see hashes).",
+  "fullReplay": {
+   "endpoint": "https://gateway.tenderly.co/public/mainnet",
+   "utc": "2026-11-25T14:54:13Z to 2026-11-25T14:55:31Z",
+   "method": "eth_getLogs(address=token, topics=[Transfer]) in windows of 25 scan chunks (50000 blocks); windows the endpoint refused (>20000 results) re-read chunk by chunk; 180 windows, all aligned to scan chunk boundaries",
+   "result": "349832 logs, 0 duplicate (block,logIndex), 0 removed/foreign, all 1496 per-chunk counts equal scan.rows, logsDigest a75d601a..., holdersDigest b7821f52..., 15959 addresses seen, 4840 positive holders, 7218 mints 7029842583603000000000000, 5736 burns 2819023057832000000000000, supply 4210819525771000000000000, 7399 payment rows identical to payments.json including blockTime (from log blockTimestamp)"
+  },
+  "secondReplay": "https://rpc.mevblocker.io (10000-block limit, 300 calls) was attempted with 3 workers and answered HTTP 429 (Cloudflare 1015) at 2026-11-25T14:55:46Z; recorded as unavailable, not as a pass. Its block, supply, sample, window, balance and code reads later succeeded with pacing.",
+  "state": "balanceOf at 26491756 for all 15959 addresses seen, by direct JSON-RPC batches of eth_call on https://rpc.mevblocker.io (no Multicall3, unlike the original collector): all equal, 4840 positive = holders.json. 25 deterministic samples (scan.balanceOfSample) by single eth_call on tenderly, mevblocker and drpc: 25/25 each. totalSupply on tenderly, mevblocker, drpc: 4210819525771000000000000. Block hash/time and next-block link on tenderly, mevblocker, drpc, publicnode.",
+  "eip7702": "eth_getCode of all 4840 holders on mevblocker: 1514 are EIP-7702 delegated EOAs (code 0xef0100+delegate, delegates equal scan.eip7702Delegated), 381 carry contract code, 2945 none. holders.json isContract=true equals the 1514+381. All balances retained.",
+  "windows": "Saved raw responses for deterministic windows on tenderly, mevblocker and drpc (drpc in 100-block pieces): whole first chunk 23501863-23503862 (2 logs), whole last chunk 26489863-26491756 (89 logs), and 100-block windows around the first, last and 8 rank-spread payment rows; all equal across endpoints, to scan chunk counts and to payments.json rows.",
+  "payments": "api.imd.fun/requests/capabilities chain 1 entry: asset 0xd34a99bc..., payTo 0x4e0fa57b..., intake 0xa43e6f75..., legacy 0x1397434c...; job.open 0.5 IMD. 7384 transfers into payTo (7359 of exactly 0.5 IMD) and 15 out (sweeps); no Transfer touches an intake, since IMD moves payer->payTo directly. A row is a transfer, not proof of an order.",
+  "unavailable": [
+   "https://ethereum-rpc.publicnode.com: archive state (eth_getCode/eth_call at old blocks) HTTP 403 'Archive requests require a personal token'",
+   "https://rpc.mevblocker.io full replay: HTTP 429 (1015)",
+   "The original collecting relay is private and is not used as evidence"
+  ],
+  "limitations": [
+   "Full replay was on one public endpoint (tenderly); the second endpoint's coverage is the sampled windows (first/last chunk + 10 payment windows) plus all balances and codes.",
+   "Raw responses of the 180 replay windows are not stored (about 250 MB); each window's response sha256 and the sha256 of its canonical log lines are in replay-tenderly.json. check.py verifies the replay's recorded results and every saved raw response offline; re-running verify_chain.py re-reads them.",
+   "Balance and supply agreement does not alone prove transfer completeness; completeness rests on the full replay's per-chunk counts and digests."
+  ],
+  "commands": [
+   "python3 -B tools/e04-chain-ethereum/verify_chain.py  (run 1, 14:54:13Z-14:57:25Z: tenderly replay ok, mevblocker 429)",
+   "python3 -B tools/e04-chain-ethereum/verify_chain.py --skip-replay tenderly --stages windows state --budget 420  (run 2, 15:09:00Z-15:15:04Z: filled mevblocker windows, balances, codes; an earlier attempt including the mevblocker replay hit the 10 min tool limit and wrote nothing)",
+   "python3 -B tools/e04-chain-ethereum/check.py --write-report",
+   "python3 -B tools/e04-chain-ethereum/check.py",
+   "Original collector (unchanged): python3 tools/collect/chain-ethereum/collect.py --rpc <archive endpoint> --cache DIR --workers 6 [--cross-rpc URL ...]"
+  ]
+ }
+}
