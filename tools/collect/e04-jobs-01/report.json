@@ -1,0 +1,42 @@
+{
+ "target": "genesis-repair-e04/evidence-01",
+ "snapshotTime": "2026-11-25T11:00:00Z",
+ "shard": "1 of 2",
+ "counts": {
+  "expected": 488,
+  "fetchedDetail": 488,
+  "fetchedResult": 488,
+  "unavailable": 0,
+  "readErrors": 0,
+  "readsWithRetries": 0,
+  "fromJobsCsvHolderGap": 196,
+  "newFromOrders": 292,
+  "createdAtOrAfterT": 0,
+  "unresolvedOracleRequests": 0
+ },
+ "stateAtReadCounts": {
+  "completed": 440,
+  "blocked": 48
+ },
+ "templates": {
+  "skill:oracle-assess": 488
+ },
+ "expectedIdsSha256": "e3b889f343d2f7fe9197ad2d80e2d6fda240f85377aba4edb48ba98c42db099a",
+ "files": {
+  "sources/e04-jobs-01/records.json": "a24c36dc2458f87239737fb8dab19c1c75784e50631da5e7068405eed44fa42f",
+  "sources/e04-jobs-01/index.json": "60be584392d5089c40c507fd34f4b0478faf6c29a4e03167f9711aed83368dc3"
+ },
+ "readWindow": [
+  "2026-11-25T15:36:51Z",
+  "2026-11-25T16:11:40Z"
+ ],
+ "unavailableJobs": [],
+ "failures": [],
+ "note": "status/state/result observations are read-time (readWindow), not historical at T; selection is deterministic from saved inputs (coverage.inputsSha256)",
+ "commands": [
+  "python3 -B tools/collect/e04-jobs-01/make_fixtures.py",
+  "python3 -B tools/collect/e04-jobs-01/collect.py --max-seconds 550  (x4, resumable)",
+  "python3 -B tools/collect/e04-jobs-01/collect.py --finalize",
+  "python3 -B tools/collect/e04-jobs-01/check.py"
+ ]
+}

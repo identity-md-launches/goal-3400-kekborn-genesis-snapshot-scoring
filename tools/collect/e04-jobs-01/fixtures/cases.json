@@ -1,0 +1,215 @@
+{
+ "files": {
+  "holders.csv": "wallet\n0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\n",
+  "jobs.csv": "job_id,wallet,is_holder,order_id,data_gaps\ncccc0001-0000-0000-4000-8000-000000000000,0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1,true,o-gap,\"{\"\"detail\"\": \"\"no detailed job record in saved job shards or late-jobs; index-only fields retained\"\"}\"\ncccc0002-0000-0000-4000-8000-000000000000,0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1,true,o-gap0,\"{\"\"detail\"\": \"\"no detailed job record in saved job shards or late-jobs; index-only fields retained\"\"}\"\ndddd0001-0000-0000-4000-8000-000000000000,0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1,true,o-saved,{}\n",
+  "sources/api-jobs-00/jobs.json": {
+   "source": "fixture",
+   "fetchedAt": "2026-11-25T00:00:00Z",
+   "coverage": "fixture",
+   "errors": [],
+   "columns": [
+    "id",
+    "error"
+   ],
+   "rows": [
+    [
+     "dddd0001-0000-0000-4000-8000-000000000000",
+     null
+    ]
+   ]
+  },
+  "sources/api-wallets-00/late-jobs.json": {
+   "source": "fixture",
+   "fetchedAt": "2026-11-25T00:00:00Z",
+   "coverage": "fixture",
+   "errors": [],
+   "columns": [
+    "jobId",
+    "detail"
+   ],
+   "rows": []
+  },
+  "sources/api-catalog/oracle-requests.json": {
+   "source": "fixture",
+   "fetchedAt": "2026-11-25T00:00:00Z",
+   "coverage": "fixture",
+   "errors": [],
+   "columns": [
+    "id",
+    "jobId"
+   ],
+   "rows": [
+    [
+     "req-3",
+     "aaaa0002-0000-0000-4000-8000-000000000000"
+    ]
+   ]
+  },
+  "sources/api-wallets-00/orders.json": {
+   "source": "fixture",
+   "fetchedAt": "2026-11-25T00:00:00Z",
+   "coverage": "fixture",
+   "errors": [],
+   "columns": [
+    "wallet",
+    "orderId",
+    "createdAt",
+    "resultJobId",
+    "result"
+   ],
+   "rows": [
+    [
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "o-group",
+     "2026-11-14T17:00:53.316Z",
+     [
+      "aaaa0001-0004-0000-4000-8000-000000000000",
+      "aaaa0001-0007-0000-4000-8000-000000000000"
+     ],
+     {
+      "kind": "oracle-group",
+      "requests": [
+       {
+        "jobId": "aaaa0001-0004-0000-4000-8000-000000000000",
+        "requestId": "req-1"
+       },
+       {
+        "jobId": "aaaa0001-0007-0000-4000-8000-000000000000",
+        "requestId": "req-2"
+       },
+       {
+        "requestId": "req-3"
+       }
+      ]
+     }
+    ],
+    [
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "o-post",
+     "2026-11-25T10:59:59.999Z",
+     "bbbb0001-0001-0000-4000-8000-000000000000",
+     {
+      "kind": "job",
+      "jobId": "bbbb0001-0001-0000-4000-8000-000000000000"
+     }
+    ],
+    [
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "o-late",
+     "2026-11-25T11:00:00.000Z",
+     "bbbb0002-0001-0000-4000-8000-000000000000",
+     {
+      "kind": "job",
+      "jobId": "bbbb0002-0001-0000-4000-8000-000000000000"
+     }
+    ],
+    [
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "o-saved",
+     "2026-10-01T00:00:00Z",
+     "dddd0001-0000-0000-4000-8000-000000000000",
+     {
+      "kind": "job",
+      "jobId": "dddd0001-0000-0000-4000-8000-000000000000"
+     }
+    ],
+    [
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "o-req",
+     "2026-10-02T00:00:00Z",
+     null,
+     {
+      "kind": "oracle",
+      "requestId": "req-unknown"
+     }
+    ],
+    [
+     "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+     "o-nonh",
+     "2026-10-01T00:00:00Z",
+     "eeee0001-0001-0000-4000-8000-000000000000",
+     {
+      "kind": "job",
+      "jobId": "eeee0001-0001-0000-4000-8000-000000000000"
+     }
+    ]
+   ]
+  },
+  "sources/e04-orders/paid-by.json": {
+   "source": "fixture",
+   "fetchedAt": "2026-11-25T00:00:00Z",
+   "coverage": "fixture",
+   "errors": [],
+   "columns": [
+    "wallet",
+    "shard",
+    "url",
+    "fetchedAt",
+    "httpStatus",
+    "bodySha256",
+    "bodyText",
+    "error"
+   ],
+   "rows": [
+    [
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "00",
+     "u",
+     "t",
+     200,
+     "x",
+     "{\"orders\": [{\"orderId\": \"o-post\", \"createdAt\": \"2026-11-25T10:59:59.999Z\", \"result\": {\"jobId\": \"bbbb0001-0001-0000-4000-8000-000000000000\"}}]}",
+     null
+    ]
+   ]
+  },
+  "sources/e04-orders/intake.json": {
+   "source": "fixture",
+   "fetchedAt": "2026-11-25T00:00:00Z",
+   "coverage": "fixture",
+   "errors": [],
+   "columns": [
+    "chainId",
+    "transactionHash",
+    "wallet",
+    "fetchedAt",
+    "httpStatus",
+    "bodySha256",
+    "bodyText",
+    "error"
+   ],
+   "rows": [
+    [
+     1,
+     "0x1",
+     "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "t",
+     200,
+     "x",
+     "{\"entries\": [{\"payer\": \"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\", \"order\": {\"id\": \"o-intake\"}, \"admission\": {\"createdAt\": \"2026-11-13T04:49:12.232Z\", \"result\": {\"jobId\": \"ffff0001-0000-0000-4000-8000-000000000000\", \"requestId\": \"req-9\"}}}, {\"payer\": \"0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\", \"order\": {\"id\": \"o-intakex\"}, \"admission\": {\"createdAt\": \"2026-11-13T04:49:12.232Z\", \"result\": {\"jobId\": \"ffff0002-0000-0000-4000-8000-000000000000\"}}}]}",
+     null
+    ]
+   ]
+  }
+ },
+ "expected": [
+  "aaaa0001-0004-0000-4000-8000-000000000000",
+  "aaaa0001-0007-0000-4000-8000-000000000000",
+  "aaaa0002-0000-0000-4000-8000-000000000000",
+  "bbbb0001-0001-0000-4000-8000-000000000000",
+  "cccc0001-0000-0000-4000-8000-000000000000",
+  "ffff0001-0000-0000-4000-8000-000000000000"
+ ],
+ "excluded": {
+  "bbbb0002-0001-0000-4000-8000-000000000000": "order created at/after T",
+  "cccc0002-0000-0000-4000-8000-000000000000": "shard 0",
+  "dddd0001-0000-0000-4000-8000-000000000000": "saved detail",
+  "eeee0001-0001-0000-4000-8000-000000000000": "non-holder payer",
+  "ffff0002-0000-0000-4000-8000-000000000000": "intake payer differs from wallet"
+ },
+ "unresolvedRequests": [
+  "req-unknown"
+ ],
+ "oracleGroupOrder": "o-group",
+ "postTAdmission": "bbbb0001-0001-0000-4000-8000-000000000000"
+}
