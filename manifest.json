@@ -1,0 +1,659 @@
+{
+  "trunkCommit": "3e1b381cfb6e6e4ea08626338297e5ec30f6940c",
+  "snapshotTime": "2026-11-25T11:00:00Z",
+  "snapshotBlocks": {
+    "ethereum": {
+      "chainId": 1,
+      "block": 26491756,
+      "blockTimeUtc": "2026-11-25T10:59:59Z"
+    },
+    "robinhood": {
+      "chainId": 4663,
+      "block": 122989778,
+      "blockTimeUtc": "2026-11-25T11:00:00Z"
+    }
+  },
+  "selfExclusion": "manifest.json is excluded because a file cannot contain its own SHA-256 hash.",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2666,
+      "sha256": "1df93c5aca07c573b5ccca369d92c0d130fbc95713066094d671e1b9dafa2e8d"
+    },
+    {
+      "path": "data-accessibility.md",
+      "bytes": 12624,
+      "sha256": "e1819b6293138a202b0940f82b4d4005b8b28b1703029c129d8a86f1116b79d5"
+    },
+    {
+      "path": "holders.csv",
+      "bytes": 1080564,
+      "sha256": "e3efc5422f6bb9a89e2dc2c5397c01b41b240e320cc499c23306fdd745e355f9"
+    },
+    {
+      "path": "jobs.csv",
+      "bytes": 29403088,
+      "sha256": "9c859d80d8b9cdc863cf3b1f64f79707e2b5f1d5b89b9d0639ad5844a62a6206"
+    },
+    {
+      "path": "methodology.md",
+      "bytes": 4891,
+      "sha256": "5cfd5634b698d15a2a9432439f168753be3bb41d767537e7fa876bb02b6b91fd"
+    },
+    {
+      "path": "scores.csv",
+      "bytes": 1037484,
+      "sha256": "cb43957c3d0e0d4a9f3aa3a5f97e93a4d6f6f713694ec2077b64ef74ed3202fc"
+    },
+    {
+      "path": "snapshot.json",
+      "bytes": 4290,
+      "sha256": "b94dc67d27bc6aaa49811431ee68a3fd25d6c90f09de8fde0f1920792d7dd425"
+    },
+    {
+      "path": "sources/api-catalog/capabilities.json",
+      "bytes": 11903,
+      "sha256": "505dd1c1df477d00f71c758412b903c3960cd854cc515599928fe2686f93a793"
+    },
+    {
+      "path": "sources/api-catalog/goals.json",
+      "bytes": 55193,
+      "sha256": "625864a29b3a76df18d8af715a2d83e909063e32cad35d336023a399edf94e23"
+    },
+    {
+      "path": "sources/api-catalog/job-index.json",
+      "bytes": 3654299,
+      "sha256": "16c7c39733f62902ea0a63307f541a2b9327021687955f2b967a09e6ae143582"
+    },
+    {
+      "path": "sources/api-catalog/oracle-requests.json",
+      "bytes": 2140935,
+      "sha256": "2784c64ac14a502a594e68a5719b5985e64858b0dcb4d366d5841ecff8bb70ff"
+    },
+    {
+      "path": "sources/api-catalog/seats-owners.json",
+      "bytes": 108275,
+      "sha256": "df8f4d5641d7ddd64f28815e042c3f716d202b6a56881b47583978b72e439c94"
+    },
+    {
+      "path": "sources/api-catalog/seats-records.json",
+      "bytes": 69503,
+      "sha256": "4397408dcf990f44ff58318f2fc797b64165f26d0a200ee28a1512abdc355b97"
+    },
+    {
+      "path": "sources/api-catalog/workflows.json",
+      "bytes": 44837,
+      "sha256": "cc54ddefe546dd508ed6d1bb41937e0009666a3b8bb8287105fb305a6dd26577"
+    },
+    {
+      "path": "sources/api-jobs-00/index.json",
+      "bytes": 82100,
+      "sha256": "b2759bd71782f59357631ac9219a6b4f1048fa98c42a65e6b9b164fc34612331"
+    },
+    {
+      "path": "sources/api-jobs-00/jobs.json",
+      "bytes": 863944,
+      "sha256": "e6b4b12dbfd69aa27151445341e6022a4eb9ee829fe72d07f484fa1440a5c4aa"
+    },
+    {
+      "path": "sources/api-jobs-01/index.json",
+      "bytes": 80991,
+      "sha256": "f1a4f8b7568f546c589db113353ae85841da3721663efe2235821d4d6c7552d1"
+    },
+    {
+      "path": "sources/api-jobs-01/jobs.json",
+      "bytes": 834800,
+      "sha256": "c2bf7fb2b633fae57108c8f28cc7d816d674d3efe62a0879ff0a8340f1519076"
+    },
+    {
+      "path": "sources/api-jobs-02/index.json",
+      "bytes": 80227,
+      "sha256": "83dc409d42fb044dfe0040649134be24deaf146983e2e068f343be364dd6106a"
+    },
+    {
+      "path": "sources/api-jobs-02/jobs.json",
+      "bytes": 827833,
+      "sha256": "6bbff0cced4937785e629247a7f766436aa754995759129b54ad063c4ff9293f"
+    },
+    {
+      "path": "sources/api-jobs-03/index.json",
+      "bytes": 79992,
+      "sha256": "13b2fa49127fc6db9ebbc7455ba886b29239fa61acb6579024634024ed6866e5"
+    },
+    {
+      "path": "sources/api-jobs-03/jobs.json",
+      "bytes": 804817,
+      "sha256": "22ae7fc59810d2e6ec05ae9c386fb87c4bb7dc853e77117f79052ba666958454"
+    },
+    {
+      "path": "sources/api-jobs-04/details.json",
+      "bytes": 13276839,
+      "sha256": "311182a6e29ca2c8ad9bd0f44f8afcc30153778634be5b4688be38ee86d070b7"
+    },
+    {
+      "path": "sources/api-jobs-04/index.json",
+      "bytes": 78826,
+      "sha256": "0533c0484b9c21d1f86f2a767afe29cc3624573bf4d53c44e638d193b88cc396"
+    },
+    {
+      "path": "sources/api-jobs-04/jobs.json",
+      "bytes": 1367476,
+      "sha256": "670b94dd9b23bacb4fa8880b50f0af52d0dc09455cebc315b0f03325a587e3f0"
+    },
+    {
+      "path": "sources/api-jobs-04/pages.json",
+      "bytes": 4427910,
+      "sha256": "1c78ff208a320f2c5fc81012c89e7a9c9a58280a8fa176e4ee96b114bd9a9516"
+    },
+    {
+      "path": "sources/api-jobs-04/results.json",
+      "bytes": 1445016,
+      "sha256": "884fd5315e0e1ca8a3fab3df5d5fee9b708b3f1ea500238034f1ce33a560ce6b"
+    },
+    {
+      "path": "sources/api-jobs-05/index.json",
+      "bytes": 80761,
+      "sha256": "fda79ed25a3ddaff429a9b812741a1a990f0a0a5951a00ae58d6578cc3afecac"
+    },
+    {
+      "path": "sources/api-jobs-05/jobs.json",
+      "bytes": 826319,
+      "sha256": "73297aee70dd9f3cd8825c8e285554bca90f1629ac73a091d3ae689639340b45"
+    },
+    {
+      "path": "sources/api-jobs-06/index.json",
+      "bytes": 79464,
+      "sha256": "df5ce7518393d5ae010413c9909e604d93b2acff0bbb944d374df4c93fb9e43e"
+    },
+    {
+      "path": "sources/api-jobs-06/jobs.json",
+      "bytes": 813513,
+      "sha256": "dfdfd78d4be42dbd658ea6f4c701809ad01e48de2f4c6fccfb145a9cacd0cae9"
+    },
+    {
+      "path": "sources/api-jobs-07/index.json",
+      "bytes": 81044,
+      "sha256": "71f3f1bbfa67c99e0c5c357155adf8287c75b431c6d04649f89dd82b223fdcd6"
+    },
+    {
+      "path": "sources/api-jobs-07/jobs.json",
+      "bytes": 819836,
+      "sha256": "880aa8c674f5f5cd415104e919a9a477e620e20c7387cac40e961118cbc9fad1"
+    },
+    {
+      "path": "sources/api-wallets-00/earnings-launches.json",
+      "bytes": 648551,
+      "sha256": "c11c1a3dc3c66f3d26519293156efd70625f32d7d93c00953dff1e87eb576318"
+    },
+    {
+      "path": "sources/api-wallets-00/earnings.json",
+      "bytes": 10673454,
+      "sha256": "1cdea7fcbbca9c490cf4a0862911cafe6ab1dba86f6bf5fc8e0faa4f33523ea8"
+    },
+    {
+      "path": "sources/api-wallets-00/late-jobs.json",
+      "bytes": 1186,
+      "sha256": "6ba3da57c49e8f7f44b3c0524d6657de2d99c5dddc645b7fd9d2eb7722f89619"
+    },
+    {
+      "path": "sources/api-wallets-00/orders.json",
+      "bytes": 296799,
+      "sha256": "be7bbd31f01699db18b375dddbe30fcef8183d0b65713659a95163f377639c1e"
+    },
+    {
+      "path": "sources/api-wallets-00/seats.json",
+      "bytes": 2928493,
+      "sha256": "c7a72b12bcb1f525dc2fb1cb6fc3ca3e67df91b483f1f0618f5b7d3eda88c644"
+    },
+    {
+      "path": "sources/api-wallets-00/wallets.json",
+      "bytes": 101103,
+      "sha256": "d2cf73b1fe189b1a2444e9dcb9bc701f48eff581910ad1e9eac71c9aaffa067d"
+    },
+    {
+      "path": "sources/api-wallets-01/earnings.json",
+      "bytes": 29700689,
+      "sha256": "fedb289152811440b35066675a9cb06c44eda6e9d1c0219ad665bca195793eb3"
+    },
+    {
+      "path": "sources/api-wallets-01/late-jobs.json",
+      "bytes": 3532,
+      "sha256": "12084afdde04f49b701f67de4b48319538a69e2539e9d8fbedf18fd64a726e30"
+    },
+    {
+      "path": "sources/api-wallets-01/orders.json",
+      "bytes": 185169,
+      "sha256": "08421456e8980c48d84bbc1c792294c81169f226ac361c45f6ee2317bce9badc"
+    },
+    {
+      "path": "sources/api-wallets-01/seats.json",
+      "bytes": 11432,
+      "sha256": "2c78364263a220e9006a42000ad625b40c25ac1de834d3e57dac6472edbdb9aa"
+    },
+    {
+      "path": "sources/api-wallets-01/wallets.json",
+      "bytes": 71574,
+      "sha256": "efbd291a7f81792b19066f15732d2028f97d1c5a8a3aec21318a20409bd5e881"
+    },
+    {
+      "path": "sources/api-wallets-02/earnings.json",
+      "bytes": 14541804,
+      "sha256": "5e32c88169d7badbb4d1a67d052d27356d809616d83cc4407bf4b57d8186e5d6"
+    },
+    {
+      "path": "sources/api-wallets-02/late-jobs.json",
+      "bytes": 890,
+      "sha256": "658298899c8f53b7ee001b895021264e19d179a45b6aabe1a6ebff0e79ea9551"
+    },
+    {
+      "path": "sources/api-wallets-02/orders.json",
+      "bytes": 144797,
+      "sha256": "74c50de13f990df3141d4c5d123918165952fe72986113d209b6852a626e692f"
+    },
+    {
+      "path": "sources/api-wallets-02/seats.json",
+      "bytes": 1894550,
+      "sha256": "8b901e7b59528a090f00f03101b5c56c75cf9dadd28de03358d37a53fb042c80"
+    },
+    {
+      "path": "sources/api-wallets-02/wallets.json",
+      "bytes": 71392,
+      "sha256": "b56ce580ff06aa4e970552545774fa2808ca430ec5246e6988cb337fb7a5867f"
+    },
+    {
+      "path": "sources/api-wallets-03/earnings.json",
+      "bytes": 13061059,
+      "sha256": "6474e6eb95468298ea82384d7344c871c90cb119eab603fc246d4bbae625c8bc"
+    },
+    {
+      "path": "sources/api-wallets-03/late-jobs.json",
+      "bytes": 87689,
+      "sha256": "46f46ecec2238f8e7b7d96884328ac8976328b12b173d69fba22650a70738bff"
+    },
+    {
+      "path": "sources/api-wallets-03/orders.json",
+      "bytes": 257665,
+      "sha256": "42c01a4ab752777aa7ba61afce5d6a426c00fde15d690d00682cc198aa8d0f88"
+    },
+    {
+      "path": "sources/api-wallets-03/seats.json",
+      "bytes": 17000,
+      "sha256": "6852003e23bf7c29382a48f61e2b84d2d55eb772d24d7f1197cca0448f803fc0"
+    },
+    {
+      "path": "sources/api-wallets-03/wallets.json",
+      "bytes": 101425,
+      "sha256": "773cb6b3a3b612c9f488af1ed0a01f0d5999a6ac929491e5d7d63584c9b8c3aa"
+    },
+    {
+      "path": "sources/api-wallets-04/earnings-launches.json",
+      "bytes": 670148,
+      "sha256": "b7a1c198916c32cb3b2b40c9f4e8f093fee577b898e2c0f227f756f02fad2fd4"
+    },
+    {
+      "path": "sources/api-wallets-04/earnings.json",
+      "bytes": 4484173,
+      "sha256": "d8c639f1cc03b73fef85b632745f5aba8690b7eceeaeae366982504bceb28fde"
+    },
+    {
+      "path": "sources/api-wallets-04/late-jobs.json",
+      "bytes": 1874,
+      "sha256": "d6e4b3720b31881b99d0859611517ef7722a1b01a40b9c16fba560b498e1383e"
+    },
+    {
+      "path": "sources/api-wallets-04/orders.json",
+      "bytes": 170168,
+      "sha256": "2233cae42fd6419d58da3080ba13b68b0bd8fe075b134c92e8f87659eb26bc95"
+    },
+    {
+      "path": "sources/api-wallets-04/seats.json",
+      "bytes": 11268,
+      "sha256": "d699129ee2ad8172d81b280679565129605d319d3760be1b813c4e57de7b0b04"
+    },
+    {
+      "path": "sources/api-wallets-04/wallets.json",
+      "bytes": 73460,
+      "sha256": "3fe59d586dbf7008ad156123ff68f0056cf778533dcd75a2508100919db78345"
+    },
+    {
+      "path": "sources/api-wallets-05/earnings.json",
+      "bytes": 14717787,
+      "sha256": "2ff23530c9ff7e39f522c24e836ab71f849f28bad189006732fd57f493e86734"
+    },
+    {
+      "path": "sources/api-wallets-05/late-jobs.json",
+      "bytes": 372,
+      "sha256": "a30cbecf04b67855f93723c8e6ef5b0f426fbb1662647a5499c8dab94d19a216"
+    },
+    {
+      "path": "sources/api-wallets-05/orders.json",
+      "bytes": 86254,
+      "sha256": "e763a052d909b039d189bcc9cc7e8c807ee3d1f6a58dd319986709262d279e19"
+    },
+    {
+      "path": "sources/api-wallets-05/seats.json",
+      "bytes": 25499,
+      "sha256": "053e2ed28f868a8b6ea69305a29c8e4b11e67ae814caf69b5179084c79fd2ea4"
+    },
+    {
+      "path": "sources/api-wallets-05/wallets.json",
+      "bytes": 68990,
+      "sha256": "4f0a48e48f75a0320cf83531e3978701ab6fa6edd8bc2b2b8cf75f24af364110"
+    },
+    {
+      "path": "sources/chain-ethereum/holders.json",
+      "bytes": 352994,
+      "sha256": "af6eb561b70b77028e651fd4f598a947f2bdafac40893f09446454b28cfcebb3"
+    },
+    {
+      "path": "sources/chain-ethereum/payments.json",
+      "bytes": 1613962,
+      "sha256": "7742994a3199b2ab9258a0e89a6a64ff2ebbbd0f8e6da2c4005dc77f757c2a2e"
+    },
+    {
+      "path": "sources/chain-ethereum/scan.json",
+      "bytes": 180129,
+      "sha256": "158bb3a458b639eae9b99e5402fab47f89e49bfeefecbfa925ad71a0fe57af40"
+    },
+    {
+      "path": "sources/chain-robinhood/holders.json",
+      "bytes": 153546,
+      "sha256": "326df5b986fa21301e76002f1cacb9a9221d48f18c9e1a210e181bdbe1eb4024"
+    },
+    {
+      "path": "sources/chain-robinhood/payments.json",
+      "bytes": 45212,
+      "sha256": "38c1c5ea0d2aa37517500fd9a01a6ada58b034d80b6cdc2f7e1abdedb5c623e3"
+    },
+    {
+      "path": "sources/chain-robinhood/scan.json",
+      "bytes": 11538,
+      "sha256": "138ec40a791eccb666b209c63c95ba4ae6985734cc5f71afa80e34f9ae0ce08e"
+    },
+    {
+      "path": "sources/snapshot-blocks.json",
+      "bytes": 4565,
+      "sha256": "102297f76a6b5755fde2c91d13386221a272da3583bf7ac5986accdfdf1b61b0"
+    },
+    {
+      "path": "tools/collect/api-catalog/README.md",
+      "bytes": 10163,
+      "sha256": "a44c3d691e637a7bf945b4dfdba4219e4fcf205c9b2008aca9effe02ae72b9db"
+    },
+    {
+      "path": "tools/collect/api-catalog/REPORT.md",
+      "bytes": 18959,
+      "sha256": "2ff761f09aa8c6fd19167b9ff517605ef88c512aaa9b41298bb2f34d8aa368e6"
+    },
+    {
+      "path": "tools/collect/api-catalog/check.py",
+      "bytes": 18337,
+      "sha256": "58c0bb3bc8141e1aa48f429218b031327366e42c72003085d4494c8f93da43e4"
+    },
+    {
+      "path": "tools/collect/api-catalog/collect.py",
+      "bytes": 25360,
+      "sha256": "ca59c4b81a0e66bad5af6cc62bbdc18c189339d6fb3eca07577fd739bd441246"
+    },
+    {
+      "path": "tools/collect/api-catalog/test_catalog.py",
+      "bytes": 14077,
+      "sha256": "8b7391a7757fbcef5278af60afd6695defddcdae8f01505eb4380c59cfdfe727"
+    },
+    {
+      "path": "tools/collect/api-jobs-00/check.py",
+      "bytes": 3075,
+      "sha256": "508a695a6a6fe81300a6f7b4eac191f61dbbaef8eba54a21e009eaa105db3611"
+    },
+    {
+      "path": "tools/collect/api-jobs-00/collect.py",
+      "bytes": 12283,
+      "sha256": "bb6efac0b8b1fc1f19fac5b8f8b3b73c3a1a4d348b75556fd7c4e1e93f45dede"
+    },
+    {
+      "path": "tools/collect/api-jobs-01/check.py",
+      "bytes": 2698,
+      "sha256": "7ccdbfaf6ec2e2b586d516da817da0c5f9956168e3abd580f026c2f6e2cb4beb"
+    },
+    {
+      "path": "tools/collect/api-jobs-01/collect.py",
+      "bytes": 11148,
+      "sha256": "5c5b719b50ef9cc9ad0d0e2a75f09bcd5caf3c90eef47c095c65866bf88d8c69"
+    },
+    {
+      "path": "tools/collect/api-jobs-02/check.py",
+      "bytes": 828,
+      "sha256": "bde280a6d4d4d95500433a01d67e1f1774f9540468657bbda27308429a89a2e4"
+    },
+    {
+      "path": "tools/collect/api-jobs-02/collect.py",
+      "bytes": 9406,
+      "sha256": "3e568ba8e2b8d4208729f9bc9a3d02a05011f67698d8e43b2714455428d4d10f"
+    },
+    {
+      "path": "tools/collect/api-jobs-03/check.py",
+      "bytes": 1339,
+      "sha256": "26811d381bff9075ac374e76f2d61d03a964ca96914e066c7a4478c3df8e0583"
+    },
+    {
+      "path": "tools/collect/api-jobs-03/collect.py",
+      "bytes": 10802,
+      "sha256": "905510f3021918bf99dcf17ea644a8abf13c3f679762f94d41a14633fc9b0e4e"
+    },
+    {
+      "path": "tools/collect/api-jobs-04/README.md",
+      "bytes": 6772,
+      "sha256": "50a82e8ad937b5f89943c2360ef5b84da99bb35add7e5a43a332b5533af08b3e"
+    },
+    {
+      "path": "tools/collect/api-jobs-04/check.py",
+      "bytes": 10375,
+      "sha256": "056d22a4f8f2b8abf2d0b3f6bafe3724648efab33ad6192773d8817874afa074"
+    },
+    {
+      "path": "tools/collect/api-jobs-04/collect.py",
+      "bytes": 23806,
+      "sha256": "e5dd505f2873915a6aef824b995b26b92223f94c81254f10ae4b1bc58f0df7aa"
+    },
+    {
+      "path": "tools/collect/api-jobs-04/run-report.md",
+      "bytes": 8371,
+      "sha256": "3c38c362ecce6a37dd190f520b30ee0f537cc62fff5a8dffd0c1ef9e03846907"
+    },
+    {
+      "path": "tools/collect/api-jobs-05/check.py",
+      "bytes": 2572,
+      "sha256": "743b2ba5997cea0337f196c8f403181a80bd5488eb3bf72ef1b06ac43ca5db48"
+    },
+    {
+      "path": "tools/collect/api-jobs-05/collect.py",
+      "bytes": 11714,
+      "sha256": "05ae7f5e0322faff8bedccc1fd707904fe2e8a83714f447d90adab6892dcfa07"
+    },
+    {
+      "path": "tools/collect/api-jobs-06/check.py",
+      "bytes": 3512,
+      "sha256": "cc72b16eb3b7b41fb30001cc0ce0249d025daaf423d2a4560cdc8491cb76ebd8"
+    },
+    {
+      "path": "tools/collect/api-jobs-06/collect.py",
+      "bytes": 12218,
+      "sha256": "7ef25ca5c9f8f4bcbaa3291e21f1c6cb6c797b22aa12c0899e89bb31df52d0cf"
+    },
+    {
+      "path": "tools/collect/api-jobs-07/check.py",
+      "bytes": 3223,
+      "sha256": "3cb77b7cb3b88533df82b1ad2286ae8c24493a1ff0d7761dd34fcceab6642b1a"
+    },
+    {
+      "path": "tools/collect/api-jobs-07/collect.py",
+      "bytes": 12954,
+      "sha256": "272d353abfa9f2b51ae5626fe987d8686c800f96d4d54fb860f12ecc07710248"
+    },
+    {
+      "path": "tools/collect/api-wallets-00/check.py",
+      "bytes": 5654,
+      "sha256": "0c3b7d1de07cd0a3b1563d458f38d18871d04e06c04bbf31553043ffec080139"
+    },
+    {
+      "path": "tools/collect/api-wallets-00/collect.py",
+      "bytes": 24631,
+      "sha256": "ecc6009d86a2c5812123b6702dbe93839889047d647a69be7d6f7de12de045c1"
+    },
+    {
+      "path": "tools/collect/api-wallets-01/check.py",
+      "bytes": 2298,
+      "sha256": "974e064cc73166adba9ad147708dac5fbec50607047d5a84b853f8201f149f8b"
+    },
+    {
+      "path": "tools/collect/api-wallets-01/collect.py",
+      "bytes": 15549,
+      "sha256": "09f6f8375ffad0b00a24ef4ba427a843785360f2e5b7484485de557ae6861e7a"
+    },
+    {
+      "path": "tools/collect/api-wallets-02/REPORT.md",
+      "bytes": 8218,
+      "sha256": "a30a8e1c9651246fcfc405281ca7e6e76a1cc5ac6a255cc83ef102b132fcd7b2"
+    },
+    {
+      "path": "tools/collect/api-wallets-02/chain.py",
+      "bytes": 4344,
+      "sha256": "0c4e3907c28dcc98d64017732c1f70738a8c849bbddf64b09778b70abe648307"
+    },
+    {
+      "path": "tools/collect/api-wallets-02/check.py",
+      "bytes": 6179,
+      "sha256": "c05b6e7969bd2fce27d53c5ec544fa37ed880aacceae6c3fda966648e0c52b0e"
+    },
+    {
+      "path": "tools/collect/api-wallets-02/collect.py",
+      "bytes": 23172,
+      "sha256": "7472c7040e261045dc32016f39e00a4f87866e36f304a472677fec0adee91136"
+    },
+    {
+      "path": "tools/collect/api-wallets-02/source_format.py",
+      "bytes": 3106,
+      "sha256": "548cca6fd64ae58f99943c7d1f7b2a16dcb9aadc6adb4e7d0bc55c63cacf4c6e"
+    },
+    {
+      "path": "tools/collect/api-wallets-03/check.py",
+      "bytes": 5871,
+      "sha256": "963c806d0a04e5e93bf41a76a61066576585f4aa379b0f7e748b59687fac7c8b"
+    },
+    {
+      "path": "tools/collect/api-wallets-03/collect.py",
+      "bytes": 19074,
+      "sha256": "9447f22945a087c9a4986d9c12e3dfc3f040e423502de23f17c7eaf7b02fd3ff"
+    },
+    {
+      "path": "tools/collect/api-wallets-04/check.py",
+      "bytes": 5711,
+      "sha256": "50b8516dc3c0caf651617caf0fa527af2484e9a2e2b805b27c9b33dbeff73da2"
+    },
+    {
+      "path": "tools/collect/api-wallets-04/collect.py",
+      "bytes": 24884,
+      "sha256": "8f0ebbd2416985a8286d54c27bcce38b27e19c0be6bcb64400d90f3887bbfbea"
+    },
+    {
+      "path": "tools/collect/api-wallets-05/REPORT.md",
+      "bytes": 10266,
+      "sha256": "1cd57f934b02b4773def98ff89b3cfb965d3be1315d0c957c4c74a0cc741270d"
+    },
+    {
+      "path": "tools/collect/api-wallets-05/check.py",
+      "bytes": 4979,
+      "sha256": "43143d78ef6b27834c755c74318449c78992e741dcdef5b544de1e7f38895194"
+    },
+    {
+      "path": "tools/collect/api-wallets-05/collect.py",
+      "bytes": 20897,
+      "sha256": "efe736303ddfaf9058a53a43bb2fa12002c2a0e20287070aefa74ea99ff1f06a"
+    },
+    {
+      "path": "tools/collect/api-wallets-05/rebuild.py",
+      "bytes": 5513,
+      "sha256": "f7c6df77983d180d869e52f5f7dfdab3964fa85edab59bb73eacd18133aa8d08"
+    },
+    {
+      "path": "tools/collect/api-wallets-05/source_format.py",
+      "bytes": 2008,
+      "sha256": "023a672f154b14540bc90ff43744b0d8ae87d745d80e786fd0636d4b9f1141b8"
+    },
+    {
+      "path": "tools/collect/chain-ethereum/REPORT.md",
+      "bytes": 8320,
+      "sha256": "e4a9593c80476c02d6d8631400cf36bdc56169935a154b0056c5213174151b87"
+    },
+    {
+      "path": "tools/collect/chain-ethereum/check.py",
+      "bytes": 7803,
+      "sha256": "6e0d3512d172d5883938b80a3ac523e3b5139b23a70c35bbbeaea0ca4ec5d104"
+    },
+    {
+      "path": "tools/collect/chain-ethereum/collect.py",
+      "bytes": 25359,
+      "sha256": "bc46041ba55bcf01f1385337261a77d75cf93495a18c3dd47fb5a01555645ea2"
+    },
+    {
+      "path": "tools/collect/chain-robinhood/check.py",
+      "bytes": 2625,
+      "sha256": "17606049d242552a8ebb3b335d5886eef1a06350b7484ac48eda6f4b76db49b0"
+    },
+    {
+      "path": "tools/collect/chain-robinhood/collect.py",
+      "bytes": 11345,
+      "sha256": "55ff56110f9ca49a6a1357421db38ec3b3201ce56aa624ab9a6bef3fe2539b52"
+    },
+    {
+      "path": "tools/holders/build_holders.py",
+      "bytes": 4603,
+      "sha256": "4e071c13df9ba71b519c141f926134d4eafc06bbc4ce332c1dbe1720753f50a9"
+    },
+    {
+      "path": "tools/holders/test_build_holders.py",
+      "bytes": 3945,
+      "sha256": "f7e4bb51ff7b31ab53d4eb706843b7e53fbd15d7926eab34c46cdb9919260c71"
+    },
+    {
+      "path": "tools/jobs/README.md",
+      "bytes": 11342,
+      "sha256": "e623d202672cd3c28be4cce91d33aa624d653b9a4c32b038a028287750d9b774"
+    },
+    {
+      "path": "tools/jobs/REPORT.md",
+      "bytes": 6358,
+      "sha256": "6c7cb8676e4e0b020089612c2a0e43902e6b8c93e2a2e1e795c73c33ec14e7f2"
+    },
+    {
+      "path": "tools/jobs/build_jobs.py",
+      "bytes": 26260,
+      "sha256": "19491adeb715c78052608fe491c06353db80cb0d53b37d5ba19063ca0319ac14"
+    },
+    {
+      "path": "tools/jobs/test_build_jobs.py",
+      "bytes": 15974,
+      "sha256": "a1ebb6251e625245af28a4e4af1bc4556b54a5cced8f3fbf1d0a5098cb676e88"
+    },
+    {
+      "path": "tools/manifest/manifest.py",
+      "bytes": 3095,
+      "sha256": "2ec4a37d408f9a5fe2e58b832cdac0dd1737028b41f24f918dfdfd345d055d4c"
+    },
+    {
+      "path": "tools/scores/__pycache__/score.cpython-312.pyc",
+      "bytes": 18303,
+      "sha256": "9ec0d24cf6e327b43e2f5986bd5efb4c2e05bc897eaaa1fce9d10b1676f0e98a"
+    },
+    {
+      "path": "tools/scores/score.py",
+      "bytes": 9263,
+      "sha256": "24706c48f14d6946a97bacdeb3722452a184fb421d3a679ca1f0b9c5401e80ad"
+    },
+    {
+      "path": "tools/scores/test_score.py",
+      "bytes": 755,
+      "sha256": "22a1f8cc1c074b53983c503fa63c6c24a510bb3e7fe684be7e6db3888ab8a307"
+    }
+  ]
+}
