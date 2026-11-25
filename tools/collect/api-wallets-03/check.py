@@ -50,7 +50,13 @@ def main():
         def before(value):
             return datetime.fromisoformat(value.replace("Z", "+00:00")) < cutoff
         order_counts = {}
+        oi = orders["columns"].index("e04Observation") if "e04Observation" in orders["columns"] else None
         for row in orders["rows"]:
+            if oi is not None and not str(row[oi]).startswith("original"):
+                # e04 observation: only the strict flag is required; post-T rows stay flagged False.
+                if row[12] is not (before(row[4]) if row[4] else None):
+                    problems.append(f"e04 order {row[1]} beforeT flag differs from createdAt < T")
+                continue
             if row[12] is not True or not before(row[4]):
                 problems.append(f"order {row[1]} is not strictly before T")
             if row[0] != row[0].lower():

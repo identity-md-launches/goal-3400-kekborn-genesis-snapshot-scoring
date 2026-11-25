@@ -258,7 +258,7 @@ def main():
             result = o.get("result") if isinstance(o.get("result"), dict) else {}
             order_rows.append([wallet, o.get("orderId"), o.get("action"), o.get("status"), created,
                 o.get("paidAt"), payment.get("status", o.get("paymentStatus")),
-                payment.get("tx", payment.get("txHash", payment.get("transactionHash", o.get("paymentTx")))),
+                payment.get("transactionHash", payment.get("txHash", payment.get("tx", o.get("paymentTx")))),
                 result.get("kind", o.get("resultKind")), result.get("jobId", o.get("resultJobId")),
                 result.get("requestId", result.get("workflowId", result.get("id", o.get("resultId")))),
                 o.get("continues"), before_t])
@@ -339,5 +339,18 @@ def _count_before(items, field, jobs=False):
     return sum(1 for x in items if _before(x.get(field, "")))
 
 
+def _e04_guard():
+    """orders.json now carries the e04 merge (original rows + raw payment/result + observations).
+    A plain re-run would rewrite it from capped newest-100 lists, so refresh orders only with
+    tools/e04-orders/collect.py, which merges by wallet+orderId and keeps older history.
+    Earnings and seats are not recollected by e04."""
+    import json as _json
+    from pathlib import Path as _Path
+    _p = _Path(__file__).resolve().parents[3] / "sources" / "api-wallets-03" / "orders.json"
+    if _p.exists() and "e04Observation" in _json.loads(_p.read_text(encoding="utf-8")).get("columns", []):
+        raise SystemExit("orders.json holds the e04 merge; refresh it with tools/e04-orders/collect.py (paid-by, intake, build)")
+
+
 if __name__ == "__main__":
+    _e04_guard()
     main()

@@ -21,7 +21,7 @@ def main():
     args = parser.parse_args()
     expected, provenance = holders(args.cache, offline=True)
     shard = set(expected)
-    columns = {"orders": ORDER_FIELDS, "wallets": WALLET_FIELDS, "seats": SEAT_FIELDS,
+    columns = {"orders": ORDER_FIELDS + ["payment", "result", "e04Observation", "e04Source", "e04Conflicts", "createdAtSource"], "wallets": WALLET_FIELDS, "seats": SEAT_FIELDS,
                "earnings": None, "late-jobs": LATE_FIELDS}
     data = {}
     for name, fields in columns.items():
@@ -46,7 +46,7 @@ def main():
         require(all(row[field] in shard for row in data[name]), f"{name}: wallet outside shard")
     orders = {(row["wallet"], row["orderId"]): row for row in data["orders"]}
     require(len(orders) == len(data["orders"]), "orders: duplicate wallet and order ID")
-    order_count = Counter(row["wallet"] for row in data["orders"])
+    order_count = Counter(row["wallet"] for row in data["orders"] if str(row.get("e04Observation", "original")).startswith("original"))
     earnings_count = Counter(row["wallet"] for row in data["earnings"])
     seats_count = Counter(row["owner"] for row in data["seats"])
     require(len({row["tokenId"] for row in data["seats"]}) == len(data["seats"]), "seats: duplicate token ID")

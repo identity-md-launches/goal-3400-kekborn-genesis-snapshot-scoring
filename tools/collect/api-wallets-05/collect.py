@@ -444,5 +444,18 @@ def main():
     print(f"API live reads {reader.live}, cache hits {reader.hits}, final failures {reader.failures}, 429s {reader.limits}", flush=True)
 
 
+def _e04_guard():
+    """orders.json now carries the e04 merge (original rows + raw payment/result + observations).
+    A plain re-run would rewrite it from capped newest-100 lists, so refresh orders only with
+    tools/e04-orders/collect.py, which merges by wallet+orderId and keeps older history.
+    Earnings and seats are not recollected by e04."""
+    import json as _json
+    from pathlib import Path as _Path
+    _p = _Path(__file__).resolve().parents[3] / "sources" / "api-wallets-05" / "orders.json"
+    if _p.exists() and "e04Observation" in _json.loads(_p.read_text(encoding="utf-8")).get("columns", []):
+        raise SystemExit("orders.json holds the e04 merge; refresh it with tools/e04-orders/collect.py (paid-by, intake, build)")
+
+
 if __name__ == "__main__":
+    _e04_guard()
     main()

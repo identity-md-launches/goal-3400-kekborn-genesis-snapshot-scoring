@@ -9,6 +9,9 @@ from collect import (LATE_COLUMNS, ORDER_COLUMNS, OUTPUT, SEAT_COLUMNS,
 from source_format import decode_source
 
 
+E04_EXTRA = ["payment", "result", "e04Observation", "e04Source", "e04Conflicts", "createdAtSource"]
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -49,11 +52,12 @@ def check():
             f"{sum(count > 1 for count in counts.values())} duplicated")
     print(f"PASS exact wallet coverage ({len(wallets)} wallets)")
 
-    orders = load("orders", ORDER_COLUMNS, evidence, len(wallets))
+    orders = load("orders", list(ORDER_COLUMNS) + E04_EXTRA, evidence, len(wallets))
     earnings = load("earnings", None, evidence, len(wallets))
     seats = load("seats", SEAT_COLUMNS, evidence, len(wallets))
     late = load("late-jobs", LATE_COLUMNS, evidence, len(wallets))
-    order_counts = Counter(row["wallet"] for row in orders)
+    # e04 repair appends observations; wallets.json counts the original read only.
+    order_counts = Counter(row["wallet"] for row in orders if str(row.get("e04Observation", "original")).startswith("original"))
     earning_counts = Counter(row["wallet"] for row in earnings)
     require((order_counts.keys() | earning_counts.keys()) <= counts.keys(),
             "orders or earnings contain out-of-shard wallets")

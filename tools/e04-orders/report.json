@@ -1,0 +1,179 @@
+{
+ "target": "genesis-repair-e04/orders",
+ "T": "2026-11-25T11:00:00Z",
+ "builtAt": "2026-11-25T15:31:22Z",
+ "commands": [
+  "collect.py baseline",
+  "collect.py paid-by (2 runs)",
+  "collect.py receipts (2 runs; first hit RPC 429, retried)",
+  "collect.py intake (2 runs)",
+  "collect.py build",
+  "check.py"
+ ],
+ "collectionWindow": {
+  "paidByFirst": "2026-11-25T14:54:18Z",
+  "paidByLast": "2026-11-25T15:10:07Z",
+  "intakeFirst": "2026-11-25T15:12:49Z",
+  "intakeLast": "2026-11-25T15:28:52Z",
+  "boundMinutes": 45
+ },
+ "reads": {
+  "paidBy": 462,
+  "paidByOk": 462,
+  "intake": 470,
+  "intakeOk": 470,
+  "intake404": 0
+ },
+ "recoveredPaymentTx": {
+  "total": 740,
+  "byShard": {
+   "01": 740
+  },
+  "beforeT": 738
+ },
+ "recoveredOrders": {
+  "newIntake": 551,
+  "newIntakeBeforeT": 551,
+  "newReread": 5,
+  "newRereadBeforeT": 0
+ },
+ "preservedOmittedByCap": [
+  [
+   "0x00856bd495941f3b95da5b7e374c76d822c9059e",
+   "c9f7b9f7-ca45-43fd-bc21-7f2d0ef8ed02"
+  ],
+  [
+   "0x00856bd495941f3b95da5b7e374c76d822c9059e",
+   "08ba0da4-cb9f-41ac-b84f-58b2d5aa881c"
+  ]
+ ],
+ "conflicts": [],
+ "duplicates": [],
+ "truncatedWallets": [
+  "0x00856bd495941f3b95da5b7e374c76d822c9059e",
+  "0x21919137e69ed667ac404c7fcb71b8179b645f46",
+  "0x3c587eff6c96eacf7e3dcc2cff6416161386e48c",
+  "0x424f7381b6cfe63963732c52613c87cb54c5c755",
+  "0x5167d014a056e43883e1bbea5530c3c0dc993281",
+  "0x9fadab91f6fa03dbd7f4f8a08a338704baacf63f",
+  "0xe33ab493249a2df0d8c4a71ac54f46d1f7778367"
+ ],
+ "unresolvedCandidates": {
+  "unresolved:no-intake-log": 1840,
+  "unresolved:intake-200-without-order-for-this-payer": 3
+ },
+ "unresolvedListedIn": "sources/e04-orders/candidates.json (disposition column)",
+ "ledgerKinds": {
+  "00|new-intake|beforeT": 81,
+  "01|filled-null|paymentTx": 740,
+  "01|new-reread|beforeT": 1,
+  "02|filled-null|resultId": 7,
+  "02|filled-null|resultJobId": 2,
+  "03|original-only:omitted-by-newest-100|": 2,
+  "03|filled-null|continues": 129,
+  "03|new-reread|beforeT": 4,
+  "03|new-intake|beforeT": 470,
+  "05|filled-null|resultId": 3
+ },
+ "perShard": {
+  "00": {
+   "rows": 616,
+   "baselineRows": 535,
+   "byObservation": {
+    "original+reread": 535,
+    "new-intake": 81
+   },
+   "beforeT": {
+    "True": 616
+   },
+   "nullPaymentTx": 5
+  },
+  "01": {
+   "rows": 745,
+   "baselineRows": 744,
+   "byObservation": {
+    "original+reread": 744,
+    "new-reread": 1
+   },
+   "beforeT": {
+    "True": 742,
+    "False": 3
+   },
+   "nullPaymentTx": 4
+  },
+  "02": {
+   "rows": 452,
+   "baselineRows": 452,
+   "byObservation": {
+    "original+reread": 452
+   },
+   "beforeT": {
+    "True": 452
+   },
+   "nullPaymentTx": 1
+  },
+  "03": {
+   "rows": 1301,
+   "baselineRows": 827,
+   "byObservation": {
+    "original+reread": 825,
+    "original-only:omitted-by-newest-100": 2,
+    "new-reread": 4,
+    "new-intake": 470
+   },
+   "beforeT": {
+    "True": 1297,
+    "False": 4
+   },
+   "nullPaymentTx": 1
+  },
+  "04": {
+   "rows": 520,
+   "baselineRows": 520,
+   "byObservation": {
+    "original+reread": 520
+   },
+   "beforeT": {
+    "True": 520
+   },
+   "nullPaymentTx": 5
+  },
+  "05": {
+   "rows": 276,
+   "baselineRows": 276,
+   "byObservation": {
+    "original+reread": 276
+   },
+   "beforeT": {
+    "True": 276
+   },
+   "nullPaymentTx": 0
+  }
+ },
+ "inputs": {
+  "sources/e04-orders/baseline-orders.json": "f44ecb0d3d0a723ce8f5821a1fbbfe63a61137822747bec4fa83d0176f70485a",
+  "sources/e04-orders/paid-by.json": "76c772578edae9e48f338bfd2527647f8d0c4e6ad3b71ef8438809e83dda9838",
+  "sources/e04-orders/rpc-receipts.json": "163e1d7a23c8b2b6400f2cb6b0923e85bfa466a66ec0604e27f18edae8010232",
+  "sources/e04-orders/intake.json": "05c74ecc2face82c7bc4d6b706b5cb98931377790c7ad71057900f15e2dfee7c",
+  "sources/chain-ethereum/payments.json": "7742994a3199b2ab9258a0e89a6a64ff2ebbbd0f8e6da2c4005dc77f757c2a2e",
+  "sources/chain-robinhood/payments.json": "38c1c5ea0d2aa37517500fd9a01a6ada58b034d80b6cdc2f7e1abdedb5c623e3"
+ },
+ "baselineFileHashes": {
+  "00": "be7bbd31f01699db18b375dddbe30fcef8183d0b65713659a95163f377639c1e",
+  "01": "08421456e8980c48d84bbc1c792294c81169f226ac361c45f6ee2317bce9badc",
+  "02": "74c50de13f990df3141d4c5d123918165952fe72986113d209b6852a626e692f",
+  "03": "42c01a4ab752777aa7ba61afce5d6a426c00fde15d690d00682cc198aa8d0f88",
+  "04": "2233cae42fd6419d58da3080ba13b68b0bd8fe075b134c92e8f87659eb26bc95",
+  "05": "e763a052d909b039d189bcc9cc7e8c807ee3d1f6a58dd319986709262d279e19"
+ },
+ "outputs": {
+  "sources/api-wallets-00/orders.json": "29c5196bb51a3bf89b346789234210f6ac324eb7250afd28b080e90d074c3d8c",
+  "sources/api-wallets-01/orders.json": "b0542c928a84777927a16e4fd628084fa5e9d7374baa040a6a2aae0465485417",
+  "sources/api-wallets-02/orders.json": "f6c49211fd9f1fe42583b22cc6aa5e405f35c485dfa244bb3f2ba66de1ac00be",
+  "sources/api-wallets-03/orders.json": "002903a838bd9f610f4a2110f5bd72626995702dad96bdacedbc9726c02ace1f",
+  "sources/api-wallets-04/orders.json": "233c6859e28d3a8633bfa52ee1938336726eae3a9726480060d17071e0d9a1dc",
+  "sources/api-wallets-05/orders.json": "140e2247e4cf1d1e54f88cdba8ec416392482087cd64162103056040bd9a398a",
+  "sources/e04-orders/ledger.json": "83791ed3fd345913590c3ed7a4c2ff926a516228a4a0ff6c2bc4c85349636a60",
+  "sources/e04-orders/candidates.json": "d5c4c7dd563ad3c06fa3ef411b04430011cb4cf0ae3980b9f9fe645b49ea9fba"
+ }
+}

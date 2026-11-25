@@ -77,8 +77,11 @@ def main():
             oc2 = {}
             ci = o["columns"].index("createdAt")
             bi = o["columns"].index("beforeT")
+            # e04 repair appends re-read/intake observations; wallets.json counts the original read.
+            oi = o["columns"].index("e04Observation") if "e04Observation" in o["columns"] else None
             for r in o["rows"]:
-                oc2[r[0]] = oc2.get(r[0], 0) + 1
+                if oi is None or str(r[oi]).startswith("original"):
+                    oc2[r[0]] = oc2.get(r[0], 0) + 1
             check("orders.json wallets are in the shard", set(oc2) <= sset)
             check("order counts agree with wallets.json",
                   all(oc.get(x) == n for x, n in oc2.items()) and
